@@ -14,7 +14,7 @@ GroundY = ScreenHeight * 0.8
 Game_Photos = {}
 Game_Sound = {}
 Player = '/Gallery/Photos/Bird.jpg'
-Background = '/Gallery/Photos/Background.png'
+Background = '/Gallery/Photos/Background.jpg'
 Pipe = '/Gallery/Photos/pipe.png'
 
 if __name__ == "__main__":
@@ -36,7 +36,7 @@ if __name__ == "__main__":
     )
 
     Game_Photos['message'] = pygame.image.load('Gallery/Photos/message.png').convert_alpha()
-    Game_Photos['Base'] = pygame.image.load('Gallery/Photos/Base1.jpg').convert_alpha()
+    Game_Photos['Base'] = pygame.image.load('Gallery/Photos/Base.jpg').convert_alpha()
     Game_Photos['Pipe'] = (
         pygame.transform.rotate(pygame.image.load( Pipe).convert_alpha(), 180),
         pygame.image.load( Pipe).convert_alpha()
@@ -46,4 +46,3 @@ if __name__ == "__main__":
     Game_Sound['Point'] = pygame.mixer.sound('Gallery/Sound/Point.mp3')
     Game_Sound['Swoosh'] = pygame.mixer.sound('Gallery/Sound/Swoosh.mp3')
     Game_Sound['Wing'] = pygame.mixer.sound('Gallery/Sound/Wing.mp3')
-    
