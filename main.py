@@ -35,10 +35,10 @@ if __name__ == "__main__":
         pygame.image.load('/gallery/Photos/9.jpg').covert_alpha(),
     )
 
-    Game_Photos['message'] = pygame.image.load('/gallery/Photos/message.png').convert_alpha()
-    Game_Photos['Base'] = pygame.image.load('/gallery/Photos/Base1.jpg').convert_alpha()
+    Game_Photos['message'] = pygame.image.load('gallery/Photos/message.png').convert_alpha()
+    Game_Photos['Base'] = pygame.image.load('gallery/Photos/Base1.jpg').convert_alpha()
     Game_Photos['Pipe'] = (
         pygame.transform.rotate(pygame.image.load( Pipe).convert_alpha(), 180),
         pygame.image.load( Pipe).convert_alpha()
         )
-    
+    Game_Sound['Die'] = pygame.mixer.sound('galary')
