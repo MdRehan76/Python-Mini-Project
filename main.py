@@ -6,8 +6,8 @@ from pygame.locals import * # Basic pygame imports
 
 # Globals Variables for the game
 FPS = 32
-ScreenWidth = 360
-ScreenHeight = 640
+ScreenWidth = 409
+ScreenHeight = 593
 Screen = pygame.display.set_mode((ScreenWidth,ScreenHeight))
 GroundY = ScreenHeight * 0.8 #For Base
 Game_Photos = {}
@@ -20,7 +20,7 @@ def welcomeScreen():
     """
     Shows Welcome Images on the screen 
     """ 
-    messagex = int((ScreenHeight - Game_Photos['message'].get_width())/16)
+    messagex = int((ScreenHeight - Game_Photos['message'].get_width())/6)
     messagey = int(ScreenHeight*0.13)
     PlayerX = int(ScreenWidth/7)
     PlayerY = int((ScreenHeight - Game_Photos['Player'].get_height())/2)
@@ -42,7 +42,12 @@ def welcomeScreen():
                 Screen.blit(Game_Photos['Base'],(basex,GroundY )) 
                 pygame.display.update()
                 FPSCLOCK.tick(FPS) # To Control the game FPS
-
+def mainGame():
+    score = 0
+    playerx = int(ScreenWidth/5)
+    playery = int(ScreenWidth/2)
+    basex = 0
+    
 
 
 if __name__ == "__main__":
