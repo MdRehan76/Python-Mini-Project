@@ -20,8 +20,8 @@ def welcomeScreen():
     """
     Shows Welcome Images on the screen 
     """ 
-    messagex = int((ScreenHeight - Game_Photos['message'].get_width())/6)
-    messagey = int(ScreenHeight*0.13)
+    messagex = int((ScreenHeight - Game_Photos['message'].get_width())/13)
+    messagey = int(ScreenHeight*0.1)
     PlayerX = int(ScreenWidth/7)
     PlayerY = int((ScreenHeight - Game_Photos['Player'].get_height())/2)
     basex = 0
@@ -57,15 +57,15 @@ if __name__ == "__main__":
     pygame.display.set_caption('Flappy Bird by Rehan')
     Game_Photos['numbers'] = (
         pygame.image.load('Gallery/Photos/0.png').convert_alpha(), #To optimize the image for game
-        pygame.image.load('Gallery/Photos/1.jpg').convert_alpha(),
+        pygame.image.load('Gallery/Photos/1.png').convert_alpha(),
         pygame.image.load('Gallery/Photos/2.png').convert_alpha(),
-        pygame.image.load('Gallery/Photos/3.jpg').convert_alpha(),
-        pygame.image.load('Gallery/Photos/4.jpg').convert_alpha(),
-        pygame.image.load('Gallery/Photos/5.jpg').convert_alpha(),
+        pygame.image.load('Gallery/Photos/3.png').convert_alpha(),
+        pygame.image.load('Gallery/Photos/4.png').convert_alpha(),
+        pygame.image.load('Gallery/Photos/5.png').convert_alpha(),
         pygame.image.load('Gallery/Photos/6.png').convert_alpha(),
         pygame.image.load('Gallery/Photos/7.png').convert_alpha(),
         pygame.image.load('Gallery/Photos/8.png').convert_alpha(),
-        pygame.image.load('Gallery/Photos/9.jpg').convert_alpha(),
+        pygame.image.load('Gallery/Photos/9.png').convert_alpha(),
     )
 
     Game_Photos['message'] = pygame.image.load('Gallery/Photos/message.png').convert_alpha()

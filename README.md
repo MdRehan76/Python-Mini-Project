@@ -20,7 +20,7 @@ Python-Mini-Project/
 │   │   ├── Base.png          # Ground/base image
 │   │   ├── message.png       # Welcome screen message
 │   │   ├── pipe.png          # Obstacle pipes
-│   │   └── 0.png - 9.jpg     # Number sprites for scoring
+│   │   └── 0.png - 9.png     # Number sprites for scoring (all PNG format)
 │   └── Sound/                 # Game audio files
 │       ├── Die.mp3           # Game over sound
 │       ├── Hit.mp3           # Collision sound
@@ -33,22 +33,35 @@ Python-Mini-Project/
 ## ✅ Features Implemented
 - **Game Initialization**: PyGame setup with window creation (409x593 resolution)
 - **Asset Loading**: Comprehensive loading of game graphics and sound effects
+  - All 10 number sprites (0-9) in PNG format for scoring display
+  - Bird, background, base, message, and pipe graphics
+  - 5 audio files for game sound effects
 - **Welcome Screen**: Interactive start screen with background, bird, and message
+  - Calculated positioning for message (centered horizontally, 10% from top)
+  - Bird positioned at 1/7 screen width, vertically centered
+  - Base/ground positioned at 80% screen height
 - **Event Handling**: Keyboard input detection (SPACE, UP arrow, ESC)
-- **Graphics Rendering**: Sprite blitting and display updates
+- **Graphics Rendering**: Optimized sprite blitting and display updates
 - **Game Loop Structure**: Main game loop with FPS control (32 FPS)
-- **Sound System**: Audio file loading for game sound effects
-- **Image Optimization**: Convert alpha for better performance
+- **Sound System**: Complete audio file loading for game sound effects
+- **Image Optimization**: Convert alpha for better performance and transparency support
+- **Pipe System**: Dual pipe setup (normal and rotated 180°) for obstacles
 
 ## 🎯 Current Implementation Status
-- ✅ **Welcome Screen**: Fully functional with proper event handling
-- ✅ **Asset Management**: All game assets (images/sounds) properly loaded
+- ✅ **Welcome Screen**: Fully functional with proper event handling and positioning
+- ✅ **Asset Management**: All 15+ game assets (images/sounds) properly loaded and optimized
 - ✅ **Game Window**: Proper pygame initialization and window setup
-- ✅ **Input System**: Keyboard controls for navigation
-- 🔄 **Main Game Loop**: Basic structure implemented (placeholder)
-- ❌ **Game Physics**: Not yet implemented
+- ✅ **Input System**: Keyboard controls for navigation (SPACE, UP, ESC)
+- ✅ **Sprite Loading**: Complete number system (0-9) and game graphics loaded
+- ✅ **Sound Loading**: All 5 game sound effects loaded and ready
+- 🔄 **Main Game Loop**: Basic structure with player variables initialized
+  - Score tracking variable initialized
+  - Player position variables set up
+  - Base movement variable ready
+- ❌ **Game Physics**: Not yet implemented (bird movement, gravity)
 - ❌ **Collision Detection**: Not yet implemented
-- ❌ **Scoring System**: Not yet implemented
+- ❌ **Scoring System**: Not yet implemented (but number sprites ready)
+- ❌ **Pipe Generation**: Not yet implemented (but pipe assets loaded)
 
 ## 🎮 Controls
 - **SPACE** or **UP Arrow**: Start game / Bird flap (when implemented)
@@ -72,11 +85,15 @@ Python-Mini-Project/
 - **Game Assets**: Organized in Gallery folder structure
 
 ## 🔧 Technical Details
-- **Global Variables**: Screen dimensions, FPS, asset paths
+- **Global Variables**: Screen dimensions (409x593), FPS (32), asset paths
 - **Image Formats**: PNG and JPG support with alpha channel optimization
-- **Audio Formats**: MP3 sound effects
-- **Event System**: PyGame event handling for user input
+- **Asset Organization**: Structured loading of 10 number sprites, game graphics, and sounds
+- **Positioning System**: Mathematical calculations for centered and proportional positioning
+- **Audio Formats**: MP3 sound effects (Die, Hit, Point, Swoosh, Wing)
+- **Event System**: PyGame event handling for user input with proper exit conditions
 - **Display Management**: Double buffering with pygame.display.update()
+- **Memory Optimization**: convert_alpha() used for all sprites for better performance
+- **Sprite Transformation**: Pipe rotation (180°) for top/bottom obstacle pairs
 
 ## 👨‍💻 Developer
 Created by **Mohd.Rehan** as a Python mini-project demonstrating game development skills with PyGame.
