@@ -37,7 +37,7 @@ def welcomeScreen():
                 return 
             else:
                 Screen.blit(Game_Photos['Background'],(0,0)) 
-                Screen.blit(Game_Photos['Player'],(PlayerX,PlayerY)) 
+                Screen.blit(Game_Photos['Player'],(PlayerX + 125,PlayerY + 20)) 
                 Screen.blit(Game_Photos['message'],(messagex,messagey)) 
                 Screen.blit(Game_Photos['Base'],(basex,GroundY )) 
                 pygame.display.update()
