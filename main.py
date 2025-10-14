@@ -29,7 +29,7 @@ def welcomeScreen():
     while True:
         for event in pygame.event.get():
             #if user clicks on cross button, close the game
-            if event.type == QUIT or (event.type == KEYDOWN and event.type == K_ESCAPE):
+            if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
                 pygame.quit()
                 sys.exit()
 
@@ -55,11 +55,11 @@ def mainGame():
     #My list of upper pipes
     upperPipes = [
         {'x' : ScreenWidth + 200, 'y' : newPipe1[0]['y']},
-        {'x' : ScreenWidth + 200+ (ScreenWidth/2), 'y' : newPipe2[1]['y']}
+        {'x' : ScreenWidth + 200+ (ScreenWidth/2), 'y' : newPipe2[0]['y']}
     ]
     #My list of lower pipes
     lowerPipes = [
-        {'x' : ScreenWidth + 200, 'y' : newPipe1[0]['y']},
+        {'x' : ScreenWidth + 200, 'y' : newPipe1[1]['y']},
         {'x' : ScreenWidth + 200+ (ScreenWidth/2), 'y' : newPipe2[1]['y']}
     ]
     
@@ -96,7 +96,11 @@ def mainGame():
                 score += 1
                 print(f"Your score is : {score}")
                 Game_Sound['Point'].play()
-            
+        
+        #Gravity bird slowing during fall
+        if playerVelocity_Y < playerMaxVel_Y and not playerFlapped:
+            playerVelocity_Y += playerAcceleration_Y
+    
             
         if playerFlapped:
             playerFlapped = False
@@ -108,17 +112,16 @@ def mainGame():
             upperPipe['x'] += pipeVelocityX
             lowerPipe['x'] += pipeVelocityX
             
+        #if the pipe is out of screen , we need to remove it
+        if upperPipes[0]['x'] < -Game_Photos['Pipe'][0].get_width():
+            upperPipes.pop(0)
+            lowerPipes.pop(0)
+            
         #Add a new pipe when the first pipe is about to cross the leftmost part of the screen
         if 0 < upperPipes[0]['x']<5:
             newpipe = getRandomPipe()
             upperPipes.append(newpipe[0])
             lowerPipes.append(newpipe[1])
-            
-        
-        #if the pipe is out of screen , we need to remove it
-        if len(upperPipes) > 0 and upperPipes[0]['x'] < -Game_Photos['Pipe'][0].get_width():
-            upperPipes.pop(0)
-            lowerPipes.pop(0)
         
         #Blitting the sprites
         Screen.blit(Game_Photos['Background'], (0,0))
@@ -145,12 +148,27 @@ def mainGame():
 
 
 def isCollide(playerx, playery,upperPipes, lowerPipes):
-    return False
+    if playery> GroundY - 25  or playery<0:
+        Game_Sound['hit'].play()
+        return True
     
+    for pipe in upperPipes:
+        pipeHeight = Game_Photos['Pipe'][0].get_height()
+        if(playery < pipeHeight + pipe['y'] and abs(playerx - pipe['x']) < Game_Photos['Pipe'][0].get_width()):
+            Game_Sound['hit'].play()
+            return True
+        
+    for pipe in lowerPipes:
+        if (playery + Game_Photos['Player'].get_height() > pipe['y']) and abs(playerx - pipe['x']) < Game_Photos['Pipe'][0].get_width():
+            Game_Sound['hit'].play()
+            return True
+        
+    return False
             
 def getRandomPipe():
     
     #Generate positions of two pipes (1st: Bottom, 2nd: Rotated)
+    
     pipeHeight = Game_Photos['Pipe'][0].get_height()
     offset = ScreenHeight/3
     y2 = offset + random.randrange(0, int(ScreenHeight - Game_Photos['Base'].get_height() -  1.2 * offset))
