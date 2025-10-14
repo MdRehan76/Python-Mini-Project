@@ -48,7 +48,120 @@ def mainGame():
     playery = int(ScreenWidth/2)
     basex = 0
     
+    #Create new pipe 2 pipes on screen ( up and down )
+    newPipe1 = getRandomPipe()
+    newPipe2 = getRandomPipe()
+    
+    #My list of upper pipes
+    upperPipes = [
+        {'x' : ScreenWidth + 200, 'y' : newPipe1[0]['y']},
+        {'x' : ScreenWidth + 200+ (ScreenWidth/2), 'y' : newPipe2[1]['y']}
+    ]
+    #My list of lower pipes
+    lowerPipes = [
+        {'x' : ScreenWidth + 200, 'y' : newPipe1[0]['y']},
+        {'x' : ScreenWidth + 200+ (ScreenWidth/2), 'y' : newPipe2[1]['y']}
+    ]
+    
+    pipeVelocityX = -4
+    playerVelocity_Y = -9
+    playerMaxVel_Y = 10
+    playerAcceleration_Y = 1
+    
+    playerFlapAccVel = -8 #Velocity while flapping
+    playerFlapped = False #True --> When bird flying
 
+    
+    while True:
+        for event in pygame.event.get():
+            if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
+                pygame.quit()
+                sys.exit()
+            if event.type == KEYDOWN and (event.key == K_SPACE or event.key == K_UP):
+                if playery > 0:
+                    playerVelocity_Y = playerFlapAccVel
+                    playerFlapped = True
+                    Game_Sound['Wing'].play()
+                    
+        crashTest = isCollide(playerx, playery,upperPipes, lowerPipes)
+        #Above function will return true, if we may have been crashed.
+        if crashTest:
+            return
+        
+        #checks the score 
+        playerMidPosition = playerx + Game_Photos['Player'].get_width()/2
+        for pipe in upperPipes:
+            pipeMidPosition = pipe['x'] + Game_Photos['Pipe'][0].get_width()/2
+            if pipeMidPosition <= playerMidPosition < pipeMidPosition + 4:
+                score += 1
+                print(f"Your score is : {score}")
+                Game_Sound['Point'].play()
+            
+            
+        if playerFlapped:
+            playerFlapped = False
+        playerHeight = Game_Photos['Player'].get_height()
+        playery = playery + min(playerVelocity_Y, GroundY - playery - playerHeight)
+
+        #move pipes to the left 
+        for upperPipe , lowerPipe in zip(upperPipes, lowerPipes):
+            upperPipe['x'] += pipeVelocityX
+            lowerPipe['x'] += pipeVelocityX
+            
+        #Add a new pipe when the first pipe is about to cross the leftmost part of the screen
+        if 0 < upperPipes[0]['x']<5:
+            newpipe = getRandomPipe()
+            upperPipes.append(newpipe[0])
+            lowerPipes.append(newpipe[1])
+            
+        
+        #if the pipe is out of screen , we need to remove it
+        if len(upperPipes) > 0 and upperPipes[0]['x'] < -Game_Photos['Pipe'][0].get_width():
+            upperPipes.pop(0)
+            lowerPipes.pop(0)
+        
+        #Blitting the sprites
+        Screen.blit(Game_Photos['Background'], (0,0))
+        for upperPipe , lowerPipe in zip(upperPipes, lowerPipes):
+            Screen.blit(Game_Photos['Pipe'][0],(upperPipe['x'],upperPipe['y']))
+            Screen.blit(Game_Photos['Pipe'][1],(lowerPipe['x'],lowerPipe['y']))
+            
+            
+        Screen.blit(Game_Photos['Base'], (basex, GroundY))
+        Screen.blit(Game_Photos['Player'], (playerx, playery))
+        #Score digits
+        myDigits = [int(x) for x in list(str(score))]
+        width = 0 
+        
+        for digit in myDigits:
+            width += Game_Photos['numbers'][digit].get_width()
+        Xoffset = (ScreenWidth - width)/2
+        
+        for digit in myDigits:
+            Screen.blit(Game_Photos['numbers'][digit], (Xoffset, ScreenHeight*0.12))
+            Xoffset += Game_Photos['numbers'][digit].get_width()
+        pygame.display.update()
+        FPSCLOCK.tick(FPS)
+
+
+def isCollide(playerx, playery,upperPipes, lowerPipes):
+    return False
+    
+            
+def getRandomPipe():
+    
+    #Generate positions of two pipes (1st: Bottom, 2nd: Rotated)
+    pipeHeight = Game_Photos['Pipe'][0].get_height()
+    offset = ScreenHeight/3
+    y2 = offset + random.randrange(0, int(ScreenHeight - Game_Photos['Base'].get_height() -  1.2 * offset))
+    pipeX = ScreenWidth + 10
+    y1 = pipeHeight - y2 + offset
+    pipe  = [
+        {'x': pipeX , 'y': -y1},  #Upper pipe
+        {'x': pipeX , 'y': y2}   #Lower pipe
+    ]
+    
+    return pipe
 
 if __name__ == "__main__":
     #This will be main point from where our game will start
@@ -87,4 +200,3 @@ if __name__ == "__main__":
     while True: 
         welcomeScreen() #Shows welcome Screen to the user until he presses a button
         mainGame() #This is the main Game Function 
-        
