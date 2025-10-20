@@ -48,6 +48,10 @@ def mainGame():
     playery = int(ScreenWidth/2)
     basex = 0
     
+    # Variables to track which background and base to use
+    current_background = 'Background'
+    current_base = 'Base'
+    
     #Create new pipe 2 pipes on screen ( up and down )
     newPipe1 = getRandomPipe()
     newPipe2 = getRandomPipe()
@@ -98,6 +102,11 @@ def mainGame():
                 score += 1
                 print(f"Your score is : {score}")
                 Game_Sound['Point'].play()
+                
+                # Change background and base when score reaches 3
+                if score == 3:
+                    current_background = 'Background1'
+                    current_base = 'Base1'
             
             
         if playerVelocity_Y < playerMaxVel_Y and not playerFlapped:
@@ -127,7 +136,7 @@ def mainGame():
             lowerPipes.pop(0)
         
         #Blitting the sprites
-        Screen.blit(Game_Photos['Background'], (0,0))
+        Screen.blit(Game_Photos[current_background], (0,0))
         for upperPipe , lowerPipe in zip(upperPipes, lowerPipes):
             # Draw upper pipe (normal)
             Screen.blit(Game_Photos['Pipe'][0],(upperPipe['x'],upperPipe['y']))
@@ -143,7 +152,7 @@ def mainGame():
                 Screen.blit(Game_Photos['Pipe'][1],(lowerPipe['x'],lowerPipe['y']))
             
             
-        Screen.blit(Game_Photos['Base'], (basex, GroundY))
+        Screen.blit(Game_Photos[current_base], (basex, GroundY))
         Screen.blit(Game_Photos['Player'], (playerx, playery))
         #Score digits
         myDigits = [int(x) for x in list(str(score))]
@@ -218,11 +227,12 @@ def getRandomPipe():
     
     # Lower pipe - starts right after the gap and extends ALL THE WAY to the base
     lowerPipeY = gapTopY + gapSize
-    lowerPipeHeight = int(GroundY - lowerPipeY)
+    # Make sure lower pipe extends exactly to the base with no gap
+    lowerPipeHeight = int(GroundY - lowerPipeY + 5)  # Add 5 pixels to ensure it touches base
     
     # Debug: ensure we have a valid lower pipe height
     if lowerPipeHeight <= 0:
-        lowerPipeHeight = 50  # Minimum height fallback
+        lowerPipeHeight = 100  # Minimum height fallback
         lowerPipeY = int(GroundY - lowerPipeHeight)
     
     pipe = [
@@ -252,6 +262,7 @@ if __name__ == "__main__":
 
     Game_Photos['message'] = pygame.image.load('Gallery/Photos/message.png').convert_alpha()
     Game_Photos['Base'] = pygame.image.load('Gallery/Photos/Base.png').convert_alpha()
+    Game_Photos['Base1'] = pygame.image.load('Gallery/Photos/Base1.png').convert_alpha()
     # Load and scale pipes to classic Flappy Bird size
     pipeImage = pygame.image.load(Pipe).convert_alpha()
     pipeWidth = 52  # Classic Flappy Bird pipe width
@@ -269,6 +280,7 @@ if __name__ == "__main__":
 
         
     Game_Photos['Background'] = pygame.image.load(Background).convert()
+    Game_Photos['Background1'] = pygame.image.load('Gallery/Photos/Background1.png').convert()
     Game_Photos['Player'] = pygame.image.load(Player).convert_alpha()
 
     while True: 
