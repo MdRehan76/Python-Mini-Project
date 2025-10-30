@@ -13,7 +13,9 @@ GroundY = ScreenHeight * 0.8 #For Base
 Game_Photos = {}
 Game_Sound = {}
 highest_score = 0  # Global variable to track highest score
-Player = 'Gallery/Photos/Bird.png'
+current_bird_index = 0  # Global variable to track current bird selection
+bird_options = ['Gallery/Photos/Bird.png', 'Gallery/Photos/Blue_Bird.png', 'Gallery/Photos/Red_Bird.png']
+Player = bird_options[current_bird_index]  # Use current bird selection
 Background = 'Gallery/Photos/Background.jpg'
 Pipe = 'Gallery/Photos/pipe.png'
 
@@ -21,6 +23,8 @@ def welcomeScreen():
     """
     Shows Welcome Images on the screen 
     """ 
+    global current_bird_index, Player
+    
     # Calculate positions for the new layout
     # 1) Flappy_Bird.png (title) - centered horizontally, positioned higher
     titleX = int((ScreenWidth - Game_Photos['title'].get_width()) / 2)
@@ -33,6 +37,11 @@ def welcomeScreen():
     # 3) Enemy_Mode.png - centered horizontally, moved up by 150px
     enemyModeX = int((ScreenWidth - Game_Photos['enemy_mode'].get_width()) / 2)
     enemyModeY = (pipeModeY + Game_Photos['pipe_mode'].get_height() + 15) - 170  # Moved up by 150px
+    
+    # 4) Change Bird button - right side with 20px margin from edge, 30px above base
+    button_size = 60  # Button size
+    changeBirdX = ScreenWidth - button_size - 20  # 20px margin from right edge
+    changeBirdY = GroundY - 30 - button_size  # 30px above base
     
     PlayerX = int(ScreenWidth/7)
     PlayerY = int((ScreenHeight - Game_Photos['Player'].get_height())/3)
@@ -49,7 +58,18 @@ def welcomeScreen():
                 return
             
             elif event.type == MOUSEBUTTONDOWN:
-                return
+                mouse_x, mouse_y = pygame.mouse.get_pos()
+                button_size = 60  # Same as in drawing section
+                # Check if click is on Change Bird button
+                if (changeBirdX <= mouse_x <= changeBirdX + button_size and 
+                    changeBirdY <= mouse_y <= changeBirdY + button_size):
+                    # Cycle to next bird
+                    current_bird_index = (current_bird_index + 1) % len(bird_options)
+                    Player = bird_options[current_bird_index]
+                    # Reload the player image
+                    Game_Photos['Player'] = pygame.image.load(Player).convert_alpha()
+                else:
+                    return  # Start game if clicked elsewhere
             else:
                 # Draw background first
                 Screen.blit(Game_Photos['Background'],(0,0)) 
@@ -60,6 +80,41 @@ def welcomeScreen():
                 Screen.blit(Game_Photos['title'],(titleX,titleY)) 
                 Screen.blit(Game_Photos['pipe_mode'],(pipeModeX,pipeModeY)) 
                 Screen.blit(Game_Photos['enemy_mode'],(enemyModeX,enemyModeY)) 
+                
+                # Draw Change Bird button with circular blur background
+                button_size = 60  # Button size
+                center_x = changeBirdX + button_size // 2
+                center_y = changeBirdY + button_size // 2
+                radius = button_size // 2
+                
+                # Create blur effect with multiple circles of decreasing opacity
+                for i in range(5):
+                    blur_radius = radius + (5 - i) * 3
+                    alpha = 30 - i * 5  # Decreasing opacity
+                    # Create a surface for the blur circle
+                    blur_surface = pygame.Surface((blur_radius * 2, blur_radius * 2), pygame.SRCALPHA)
+                    pygame.draw.circle(blur_surface, (200, 200, 200, alpha), (blur_radius, blur_radius), blur_radius)
+                    Screen.blit(blur_surface, (center_x - blur_radius, center_y - blur_radius))
+                
+                # Draw main circular background with semi-transparent effect
+                circle_surface = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
+                pygame.draw.circle(circle_surface, (255, 255, 255, 120), (radius, radius), radius)  # Semi-transparent white
+                Screen.blit(circle_surface, (changeBirdX, changeBirdY))
+                
+                # Draw circular border
+                pygame.draw.circle(Screen, (0, 0, 0), (center_x, center_y), radius, 3)  # Black border
+                
+                # Get current bird image and scale it to fit button
+                bird_image_keys = ['Bird', 'Blue_Bird', 'Red_Bird']
+                current_bird_image = Game_Photos[bird_image_keys[current_bird_index]]
+                
+                # Scale bird image to fit in circle (with some padding)
+                scaled_bird = pygame.transform.scale(current_bird_image, (button_size - 15, button_size - 15))
+                
+                # Center the bird image in the circle
+                bird_x = changeBirdX + 7
+                bird_y = changeBirdY + 7
+                Screen.blit(scaled_bird, (bird_x, bird_y))
                 
                 pygame.display.update()
                 FPSCLOCK.tick(FPS) # To Control the game FPS
@@ -374,6 +429,11 @@ if __name__ == "__main__":
     Game_Photos['Background'] = pygame.image.load(Background).convert()
     Game_Photos['Background1'] = pygame.image.load('Gallery/Photos/Background1.png').convert()
     Game_Photos['Player'] = pygame.image.load(Player).convert_alpha()
+    
+    # Load all bird options for cycling
+    Game_Photos['Bird'] = pygame.image.load('Gallery/Photos/Bird.png').convert_alpha()
+    Game_Photos['Blue_Bird'] = pygame.image.load('Gallery/Photos/Blue_Bird.png').convert_alpha()
+    Game_Photos['Red_Bird'] = pygame.image.load('Gallery/Photos/Red_Bird.png').convert_alpha()
 
     while True: 
         welcomeScreen() #Shows welcome Screen to the user until he presses a button
