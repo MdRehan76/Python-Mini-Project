@@ -34,7 +34,10 @@ def welcomeScreen():
                 sys.exit()
 
             elif event.type == KEYDOWN and (event.key == K_SPACE or event.key == K_UP):
-                return 
+                return
+            
+            elif event.type == MOUSEBUTTONDOWN:
+                return
             else:
                 Screen.blit(Game_Photos['Background'],(0,0)) 
                 Screen.blit(Game_Photos['Player'],(PlayerX,PlayerY)) 
@@ -48,9 +51,10 @@ def mainGame():
     playery = int(ScreenWidth/2)
     basex = 0
     
-    # Variables to track which background and base to use
+    # Variables to track which background, base and pipe to use
     current_background = 'Background'
     current_base = 'Base'
+    current_pipe = 'Pipe'
     
     #Create new pipe 2 pipes on screen ( up and down )
     newPipe1 = getRandomPipe()
@@ -81,7 +85,7 @@ def mainGame():
             if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
                 pygame.quit()
                 sys.exit()
-            if event.type == KEYDOWN and (event.key == K_SPACE or event.key == K_UP):
+            if (event.type == KEYDOWN and (event.key == K_SPACE or event.key == K_UP)) or event.type == MOUSEBUTTONDOWN:
                 if playery > 0:
                     playerVelocity_Y = playerFlapAccVel
                     playerFlapped = True
@@ -92,6 +96,8 @@ def mainGame():
         if crashTest:
             Game_Sound['Hit'].play()
             Game_Sound['Die'].play()
+            # Reset player sprite back to bird
+            Game_Photos['Player'] = pygame.image.load(Player).convert_alpha()
             return
         
         #checks the score 
@@ -103,10 +109,12 @@ def mainGame():
                 print(f"Your score is : {score}")
                 Game_Sound['Point'].play()
                 
-                # Change background and base when score reaches 3
+                # Change background, base, player sprite and pipes when score reaches 3
                 if score == 3:
                     current_background = 'Background1'
                     current_base = 'Base1'
+                    current_pipe = 'Pipe1'
+                    Game_Photos['Player'] = pygame.image.load('Gallery/Photos/bat.png').convert_alpha()
             
             
         if playerVelocity_Y < playerMaxVel_Y and not playerFlapped:
@@ -138,18 +146,18 @@ def mainGame():
         #Blitting the sprites
         Screen.blit(Game_Photos[current_background], (0,0))
         for upperPipe , lowerPipe in zip(upperPipes, lowerPipes):
-            # Draw upper pipe (normal)
-            Screen.blit(Game_Photos['Pipe'][0],(upperPipe['x'],upperPipe['y']))
+            # Draw upper pipe using current pipe
+            Screen.blit(Game_Photos[current_pipe][0],(upperPipe['x'],upperPipe['y']))
             
             # Draw lower pipe (scaled to reach base)
             if 'height' in lowerPipe:
                 # Scale the lower pipe to extend to the base
-                pipeWidth = Game_Photos['Pipe'][1].get_width()
-                scaledLowerPipe = pygame.transform.scale(Game_Photos['Pipe'][1], (pipeWidth, lowerPipe['height']))
+                pipeWidth = Game_Photos[current_pipe][1].get_width()
+                scaledLowerPipe = pygame.transform.scale(Game_Photos[current_pipe][1], (pipeWidth, lowerPipe['height']))
                 Screen.blit(scaledLowerPipe,(lowerPipe['x'],lowerPipe['y']))
             else:
                 # Fallback to normal pipe
-                Screen.blit(Game_Photos['Pipe'][1],(lowerPipe['x'],lowerPipe['y']))
+                Screen.blit(Game_Photos[current_pipe][1],(lowerPipe['x'],lowerPipe['y']))
             
             
         Screen.blit(Game_Photos[current_base], (basex, GroundY))
@@ -265,12 +273,17 @@ if __name__ == "__main__":
     Game_Photos['Base1'] = pygame.image.load('Gallery/Photos/Base1.png').convert_alpha()
     # Load and scale pipes to classic Flappy Bird size
     pipeImage = pygame.image.load(Pipe).convert_alpha()
+    pipe1Image = pygame.image.load('Gallery/Photos/pipe1.png').convert_alpha()
     pipeWidth = 52  # Classic Flappy Bird pipe width
     pipeHeight = 320  # Make pipes taller
     
     Game_Photos['Pipe'] = (
         pygame.transform.scale(pygame.transform.rotate(pipeImage, 180), (pipeWidth, pipeHeight)),
         pygame.transform.scale(pipeImage, (pipeWidth, pipeHeight))
+        )
+    Game_Photos['Pipe1'] = (
+        pygame.transform.scale(pygame.transform.rotate(pipe1Image, 180), (pipeWidth, pipeHeight)),
+        pygame.transform.scale(pipe1Image, (pipeWidth, pipeHeight))
         )
     Game_Sound['Die'] = pygame.mixer.Sound('Gallery/Sound/Die.mp3')
     Game_Sound['Hit'] = pygame.mixer.Sound('Gallery/Sound/Hit.mp3')
