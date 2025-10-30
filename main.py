@@ -146,6 +146,11 @@ def mainGame():
     current_background = 'Background1' if game_mode == 'enemy' else 'Background'
     current_base = 'Base1' if game_mode == 'enemy' else 'Base'
     
+    # Powerup variables
+    powerups = []  # List to store powerup positions
+    last_powerup_score = 0  # Track when we last spawned a powerup
+    should_spawn_powerup = False  # Flag to track if we should spawn a powerup
+    
     # Start background music for enemy mode
     if game_mode == 'enemy':
         Game_Sound['Background1'].play(-1)  # -1 means loop indefinitely
