@@ -13,6 +13,12 @@ GroundY = ScreenHeight * 0.8 #For Base
 Game_Photos = {}
 Game_Sound = {}
 highest_score = 0  # Global variable to track highest score
+is_invulnerable = False  # Track if bird is invulnerable
+invulnerable_start_time = 0  # When invulnerability started
+POWERUP_DEBUG = False  # Set to True to see debug messages
+score_when_powerup_collected = 0  # Track score when powerup was collected
+SCORE_INCREASE_FOR_INVULNERABILITY = 5  # Invulnerability ends after score increases by this much
+blink_counter = 0  # Counter for blinking effect
 current_bird_index = 0  # Global variable to track current bird selection
 game_mode = 'normal'  # Global variable to track game mode ('normal' or 'enemy')
 bird_options = ['Gallery/Photos/Bird.png', 'Gallery/Photos/Blue_Bird.png', 'Gallery/Photos/Red_Bird.png']
@@ -135,11 +141,17 @@ def welcomeScreen():
                 pygame.display.update()
                 FPSCLOCK.tick(FPS) # To Control the game FPS
 def mainGame():
-    global game_mode
+    global game_mode, is_invulnerable, blink_counter, score_when_powerup_collected
     score = 0
     playerx = int(ScreenWidth/5)
     playery = int(ScreenWidth/2)
     basex = 0
+    
+    # Initialize invulnerability variables
+    global is_invulnerable, score_when_powerup_collected
+    is_invulnerable = False
+    score_when_powerup_collected = 0
+    blink_counter = 0
     
     # Initialize powerup system
     powerups = []
@@ -210,7 +222,7 @@ def mainGame():
                     Game_Sound['Wing'].play()
                     
         if game_mode == 'normal':
-            crashTest = isCollide(playerx, playery, upperPipes, lowerPipes)
+            crashTest = isCollide(playerx, playery, upperPipes, lowerPipes, score)
         else:  # enemy mode
             crashTest = isCollideWithEnemies(playerx, playery, enemies)
             
@@ -247,7 +259,9 @@ def mainGame():
                 if pipeMidPosition <= playerMidPosition < pipeMidPosition + 4:
                     score += 1
                     print(f"Your score is : {score}")
-                    Game_Sound['Point'].play()  # Play Point.mp3 for successful scoring
+                    # Don't play point sound if we're scoring while invulnerable
+                    if not is_invulnerable:
+                        Game_Sound['Point'].play()  # Play Point.mp3 for successful scoring
         else:  # enemy mode
             for enemy in enemies:
                 enemyMidPosition = enemy['x'] + Game_Photos['Bat'].get_width()/2
@@ -285,11 +299,16 @@ def mainGame():
                 upperPipes.pop(0)
                 lowerPipes.pop(0)
                 
-            # Handle powerup spawning at score intervals of 5 (no upper limit)
-            if score >= 5 and score % 5 == 0 and score != last_powerup_score:
-                last_powerup_score = score
-                should_spawn_powerup = True
-                print(f"Score {score} reached - preparing to spawn powerup")
+            # Handle powerup spawning at score intervals of 14
+            if score >= 14:
+                # Warn player when approaching powerup spawn
+                if score % 14 == 13:
+                    print("Get ready! Powerup coming up next!")
+                
+                if score % 14 == 0 and score != last_powerup_score:
+                    last_powerup_score = score
+                    should_spawn_powerup = True
+                    print(f"Score {score} reached - powerup has spawned!")
             
             # Spawn powerup if conditions are met
             if should_spawn_powerup and len(upperPipes) >= 2:
@@ -298,18 +317,16 @@ def mainGame():
                 rightmost_pipe = upperPipes[-1]
                 powerup_x = rightmost_pipe['x'] + 150  # 150px after the rightmost pipe
                 
-                # Choose position: either above upper pipe or below lower pipe
-                if random.choice([True, False]):
-                    # Above upper pipe (50px above)
-                    powerup_y = rightmost_pipe['y'] - 50
-                    # Make sure it's not too high
-                    powerup_y = max(50, powerup_y)
-                else:
-                    # Below lower pipe (50px below)
-                    lower_pipe_bottom = lowerPipes[-1]['y'] + Game_Photos['Pipe'][0].get_height()
-                    powerup_y = lower_pipe_bottom + 50
-                    # Make sure it's not too low
-                    powerup_y = min(powerup_y, GroundY - 100)
+                # Position powerup in the middle of the gap for easier collection
+                upper_pipe_bottom = rightmost_pipe['y'] + Game_Photos['Pipe'][0].get_height()
+                lower_pipe_top = lowerPipes[-1]['y']
+                gap_center = upper_pipe_bottom + (lower_pipe_top - upper_pipe_bottom) / 2
+                
+                # Add slight random variation to make it interesting but still safe
+                powerup_y = gap_center + random.randint(-20, 20)
+                
+                # Safety bounds check
+                powerup_y = max(upper_pipe_bottom + 30, min(powerup_y, lower_pipe_top - 30))
                 
                 powerups.append({'x': powerup_x, 'y': powerup_y})
                 print(f"Spawned powerup at x:{powerup_x}, y:{powerup_y}")
@@ -325,7 +342,15 @@ def mainGame():
                     playerx + Game_Photos['Player'].get_width() > powerup['x'] and
                     playery < powerup['y'] + Game_Photos['PowerUp'].get_height() and
                     playery + Game_Photos['Player'].get_height() > powerup['y']):
-                    Game_Sound['Point'].play()  # Play sound when collected
+                    # Only activate if not already invulnerable
+                    if not is_invulnerable:
+                        Game_Sound['Point'].play()
+                        is_invulnerable = True
+                        score_when_powerup_collected = score
+                        blink_counter = 0
+                        print(f"Powerup collected at score {score}! Invulnerability until score reaches {score + SCORE_INCREASE_FOR_INVULNERABILITY}!")
+                    # Remove the collected powerup whether invulnerable or not
+                    continue
                 else:
                     # Keep powerup if it's still on screen and not collected
                     if powerup['x'] > -Game_Photos['PowerUp'].get_width():
@@ -351,12 +376,14 @@ def mainGame():
         
         # Draw powerups in normal mode
         if game_mode == 'normal':
-            # Print debug info about powerups
-            if score >= 5:
-                print(f"Current score: {score}, Number of powerups: {len(powerups)}")
+            # Print debug info about powerups only when debug is enabled
+            if score >= 14:
+                if POWERUP_DEBUG:
+                    print(f"Current score: {score}, Number of powerups: {len(powerups)}")
                 for powerup in powerups:
                     Screen.blit(Game_Photos['PowerUp'], (powerup['x'], powerup['y']))
-                    print(f"Drawing powerup at position: x={powerup['x']}, y={powerup['y']}")
+                    if POWERUP_DEBUG:
+                        print(f"Drawing powerup at position: x={powerup['x']}, y={powerup['y']}")
         
         if game_mode == 'normal':
             # Draw pipes for normal mode
@@ -379,7 +406,26 @@ def mainGame():
                 Screen.blit(Game_Photos['Bat'], (enemy['x'], enemy['y']))
             
         Screen.blit(Game_Photos[current_base], (basex, GroundY))
-        Screen.blit(Game_Photos['Player'], (playerx, playery))
+        # Draw player with enhanced visual effects when invulnerable
+        if is_invulnerable:
+            # Create a golden glow effect
+            glow_size = 4
+            glow_color = (255, 215, 0, 100)  # Golden color with transparency
+            glow_surface = pygame.Surface((Game_Photos['Player'].get_width() + glow_size*2, 
+                                         Game_Photos['Player'].get_height() + glow_size*2), 
+                                         pygame.SRCALPHA)
+            
+            # Draw the glow if not in invisible frame
+            if blink_counter % 8 < 6:  # Longer visible time for better visibility
+                pygame.draw.ellipse(glow_surface, glow_color, 
+                                  (0, 0, glow_surface.get_width(), glow_surface.get_height()))
+                Screen.blit(glow_surface, 
+                          (playerx - glow_size, playery - glow_size))
+                Screen.blit(Game_Photos['Player'], (playerx, playery))
+            blink_counter += 1
+        else:
+            Screen.blit(Game_Photos['Player'], (playerx, playery))
+            
         #Score digits
         myDigits = [int(x) for x in list(str(score))]
         width = 0 
@@ -395,19 +441,37 @@ def mainGame():
         FPSCLOCK.tick(FPS)
 
 
-def isCollide(playerx, playery, upperPipes, lowerPipes):
+def isCollide(playerx, playery, upperPipes, lowerPipes, current_score):
     """
     Returns True if player collides with the ground or pipes.
     """
+    global is_invulnerable, score_when_powerup_collected, blink_counter
+    
+    # Check if invulnerability should end based on score difference
+    if is_invulnerable:
+        score_difference = current_score - score_when_powerup_collected
+        print(f"Current score: {current_score}, Score when powerup collected: {score_when_powerup_collected}, Difference: {score_difference}")
+        if score_difference >= SCORE_INCREASE_FOR_INVULNERABILITY:
+            is_invulnerable = False
+            blink_counter = 0
+            print(f"\nInvulnerability has ended after score increased by {SCORE_INCREASE_FOR_INVULNERABILITY}")
+        else:
+            print(f"Invulnerability active! {SCORE_INCREASE_FOR_INVULNERABILITY - score_difference} more points until it ends")
+    
     playerHeight = Game_Photos['Player'].get_height()
     playerWidth = Game_Photos['Player'].get_width()
 
-    # Check if bird hits the ground
+    # Always check ground and ceiling collisions, even when invulnerable
     if playery + playerHeight >= GroundY:
+        is_invulnerable = False  # Reset invulnerability on ground hit
         return True
-    # Check if bird hits the top
     elif playery < 0:
+        is_invulnerable = False  # Reset invulnerability on ceiling hit
         return True
+        
+    # Skip pipe collisions if invulnerable
+    if is_invulnerable:
+        return False
     
     # Check collision with pipes
     for upperPipe, lowerPipe in zip(upperPipes, lowerPipes):
@@ -415,8 +479,15 @@ def isCollide(playerx, playery, upperPipes, lowerPipes):
         pipeWidth = Game_Photos['Pipe'][0].get_width()
         pipeHeight = Game_Photos['Pipe'][0].get_height()
         
-        # Check if bird is in the horizontal range of the pipe
+        # Check if bird has passed this pipe
+        if (playerx > upperPipe['x'] + pipeWidth) and not ('passed' in upperPipe and upperPipe['passed']):
+            upperPipe['passed'] = True
+                # We no longer need to count pipes passed since we're using time-based invulnerability        # Check if bird is in the horizontal range of the pipe
         if (playerx < upperPipe['x'] + pipeWidth) and (playerx + playerWidth > upperPipe['x']):
+            # Skip collision check if invulnerable
+            if is_invulnerable:
+                continue
+                
             # Check collision with upper pipe
             if playery < upperPipe['y'] + pipeHeight:
                 return True
