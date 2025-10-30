@@ -51,9 +51,7 @@ def mainGame():
     playery = int(ScreenWidth/2)
     basex = 0
     
-    # Variables to track which background, base and pipe to use
-    current_background = 'Background'
-    current_base = 'Base'
+    # Variable to track which pipe to use
     current_pipe = 'Pipe'
     
     #Create new pipe 2 pipes on screen ( up and down )
@@ -109,12 +107,9 @@ def mainGame():
                 print(f"Your score is : {score}")
                 Game_Sound['Point'].play()
                 
-                # Change background, base, player sprite and pipes when score reaches 3
+                # Change pipes when score reaches 3
                 if score == 3:
-                    current_background = 'Background1'
-                    current_base = 'Base1'
                     current_pipe = 'Pipe1'
-                    Game_Photos['Player'] = pygame.image.load('Gallery/Photos/bat.png').convert_alpha()
             
             
         if playerVelocity_Y < playerMaxVel_Y and not playerFlapped:
@@ -144,7 +139,7 @@ def mainGame():
             lowerPipes.pop(0)
         
         #Blitting the sprites
-        Screen.blit(Game_Photos[current_background], (0,0))
+        Screen.blit(Game_Photos['Background'], (0,0))
         for upperPipe , lowerPipe in zip(upperPipes, lowerPipes):
             # Draw upper pipe using current pipe
             Screen.blit(Game_Photos[current_pipe][0],(upperPipe['x'],upperPipe['y']))
@@ -160,7 +155,7 @@ def mainGame():
                 Screen.blit(Game_Photos[current_pipe][1],(lowerPipe['x'],lowerPipe['y']))
             
             
-        Screen.blit(Game_Photos[current_base], (basex, GroundY))
+        Screen.blit(Game_Photos['Base'], (basex, GroundY))
         Screen.blit(Game_Photos['Player'], (playerx, playery))
         #Score digits
         myDigits = [int(x) for x in list(str(score))]
