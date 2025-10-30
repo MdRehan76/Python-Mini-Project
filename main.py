@@ -146,7 +146,11 @@ def mainGame():
     current_background = 'Background1' if game_mode == 'enemy' else 'Background'
     current_base = 'Base1' if game_mode == 'enemy' else 'Base'
     
-    # Initialize game objects based on mode
+    # Start background music for enemy mode
+    if game_mode == 'enemy':
+        Game_Sound['Background1'].play(-1)  # -1 means loop indefinitely
+    
+    # Initialize enemies list for enemy mode
     enemies = []
     upperPipes = []
     lowerPipes = []
@@ -183,6 +187,9 @@ def mainGame():
     while True:
         for event in pygame.event.get():
             if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
+                # Stop background music before quitting
+                if game_mode == 'enemy':
+                    Game_Sound['Background1'].stop()
                 pygame.quit()
                 sys.exit()
             if (event.type == KEYDOWN and (event.key == K_SPACE or event.key == K_UP)) or event.type == MOUSEBUTTONDOWN:
@@ -198,7 +205,9 @@ def mainGame():
             
         #Above function will return true, if we may have been crashed.
         if crashTest:
+            # Stop background music if it's playing
             if game_mode == 'enemy':
+                Game_Sound['Background1'].stop()
                 # Enemy mode: Play swoosh sound first, then die sound after 0.5 seconds
                 Game_Sound['Swoosh'].play()
                 # Show the final frame for a moment
@@ -532,6 +541,9 @@ if __name__ == "__main__":
     Game_Sound['Point'] = pygame.mixer.Sound('Gallery/Sound/Point.mp3')
     Game_Sound['Swoosh'] = pygame.mixer.Sound('Gallery/Sound/Swoosh.mp3')
     Game_Sound['Wing'] = pygame.mixer.Sound('Gallery/Sound/Wing.mp3')
+    
+    # Load background music for enemy mode
+    Game_Sound['Background1'] = pygame.mixer.Sound('Gallery/Sound/Background1.mp3')
 
         
     Game_Photos['Background'] = pygame.image.load(Background).convert()
