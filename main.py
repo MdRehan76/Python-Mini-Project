@@ -14,6 +14,7 @@ Game_Photos = {}
 Game_Sound = {}
 highest_score = 0  # Global variable to track highest score
 current_bird_index = 0  # Global variable to track current bird selection
+game_mode = 'normal'  # Global variable to track game mode ('normal' or 'enemy')
 bird_options = ['Gallery/Photos/Bird.png', 'Gallery/Photos/Blue_Bird.png', 'Gallery/Photos/Red_Bird.png']
 Player = bird_options[current_bird_index]  # Use current bird selection
 Background = 'Gallery/Photos/Background.jpg'
@@ -60,6 +61,7 @@ def welcomeScreen():
             elif event.type == MOUSEBUTTONDOWN:
                 mouse_x, mouse_y = pygame.mouse.get_pos()
                 button_size = 60  # Same as in drawing section
+                
                 # Check if click is on Change Bird button
                 if (changeBirdX <= mouse_x <= changeBirdX + button_size and 
                     changeBirdY <= mouse_y <= changeBirdY + button_size):
@@ -68,6 +70,20 @@ def welcomeScreen():
                     Player = bird_options[current_bird_index]
                     # Reload the player image
                     Game_Photos['Player'] = pygame.image.load(Player).convert_alpha()
+                
+                # Check if click is on Enemy Mode button
+                elif (enemyModeX <= mouse_x <= enemyModeX + Game_Photos['enemy_mode'].get_width() and
+                      enemyModeY <= mouse_y <= enemyModeY + Game_Photos['enemy_mode'].get_height()):
+                    global game_mode
+                    game_mode = 'enemy'
+                    return  # Start enemy mode
+                
+                # Check if click is on Pipe Mode button
+                elif (pipeModeX <= mouse_x <= pipeModeX + Game_Photos['pipe_mode'].get_width() and
+                      pipeModeY <= mouse_y <= pipeModeY + Game_Photos['pipe_mode'].get_height()):
+                    game_mode = 'normal'
+                    return  # Start normal mode
+                
                 else:
                     return  # Start game if clicked elsewhere
             else:
@@ -119,28 +135,41 @@ def welcomeScreen():
                 pygame.display.update()
                 FPSCLOCK.tick(FPS) # To Control the game FPS
 def mainGame():
+    global game_mode
     score = 0
     playerx = int(ScreenWidth/5)
     playery = int(ScreenWidth/2)
     basex = 0
     
-    # Variable to track which pipe to use
+    # Variables to track game elements based on mode
     current_pipe = 'Pipe'
+    current_background = 'Background1' if game_mode == 'enemy' else 'Background'
+    current_base = 'Base1' if game_mode == 'enemy' else 'Base'
     
-    #Create new pipe 2 pipes on screen ( up and down )
-    newPipe1 = getRandomPipe()
-    newPipe2 = getRandomPipe()
+    # Initialize game objects based on mode
+    enemies = []
+    upperPipes = []
+    lowerPipes = []
     
-    #My list of upper pipes - classic Flappy Bird spacing
-    upperPipes = [
-        {'x' : ScreenWidth + 200, 'y' : newPipe1[0]['y']},
-        {'x' : ScreenWidth + 400, 'y' : newPipe2[0]['y']}  # 200px between pipes
-    ]
-    #My list of lower pipes
-    lowerPipes = [
-        {'x' : ScreenWidth + 200, 'y' : newPipe1[1]['y']},
-        {'x' : ScreenWidth + 400, 'y' : newPipe2[1]['y']}  # 200px between pipes
-    ]
+    if game_mode == 'normal':
+        # Create pipes for normal mode
+        newPipe1 = getRandomPipe()
+        newPipe2 = getRandomPipe()
+        
+        upperPipes = [
+            {'x' : ScreenWidth + 200, 'y' : newPipe1[0]['y']},
+            {'x' : ScreenWidth + 400, 'y' : newPipe2[0]['y']}
+        ]
+        lowerPipes = [
+            {'x' : ScreenWidth + 200, 'y' : newPipe1[1]['y']},
+            {'x' : ScreenWidth + 400, 'y' : newPipe2[1]['y']}
+        ]
+    else:  # enemy mode
+        # Create initial enemies
+        enemies = [
+            getRandomEnemy(),
+            {'x': ScreenWidth + 300, 'y': random.randrange(50, int(GroundY - 100))}
+        ]
     
     pipeVelocityX = -4
     playerVelocity_Y = -9
@@ -162,14 +191,28 @@ def mainGame():
                     playerFlapped = True
                     Game_Sound['Wing'].play()
                     
-        crashTest = isCollide(playerx, playery, upperPipes, lowerPipes)
+        if game_mode == 'normal':
+            crashTest = isCollide(playerx, playery, upperPipes, lowerPipes)
+        else:  # enemy mode
+            crashTest = isCollideWithEnemies(playerx, playery, enemies)
+            
         #Above function will return true, if we may have been crashed.
         if crashTest:
-            Game_Sound['Hit'].play()
-            Game_Sound['Die'].play()
-            # Show the final frame for a moment
-            pygame.display.update()
-            pygame.time.wait(500)  # Wait half a second
+            if game_mode == 'enemy':
+                # Enemy mode: Play swoosh sound first, then die sound after 0.5 seconds
+                Game_Sound['Swoosh'].play()
+                # Show the final frame for a moment
+                pygame.display.update()
+                pygame.time.wait(500)  # Wait half a second
+                Game_Sound['Die'].play()
+            else:
+                # Normal mode: Play hit sound first, then die sound after 0.5 seconds
+                Game_Sound['Hit'].play()
+                # Show the final frame for a moment
+                pygame.display.update()
+                pygame.time.wait(500)  # Wait half a second
+                Game_Sound['Die'].play()
+            
             # Show game over screen with final score and wait for click
             gameOverScreen(score)
             # Return to let the main loop show welcome screen
@@ -177,16 +220,25 @@ def mainGame():
         
         #checks the score 
         playerMidPosition = playerx + Game_Photos['Player'].get_width()/2
-        for pipe in upperPipes:
-            pipeMidPosition = pipe['x'] + Game_Photos['Pipe'][0].get_width()/2
-            if pipeMidPosition <= playerMidPosition < pipeMidPosition + 4:
-                score += 1
-                print(f"Your score is : {score}")
-                Game_Sound['Point'].play()
-                
-                # Change pipes when score reaches 3
-                if score == 3:
-                    current_pipe = 'Pipe1'
+        
+        if game_mode == 'normal':
+            for pipe in upperPipes:
+                pipeMidPosition = pipe['x'] + Game_Photos['Pipe'][0].get_width()/2
+                if pipeMidPosition <= playerMidPosition < pipeMidPosition + 4:
+                    score += 1
+                    print(f"Your score is : {score}")
+                    Game_Sound['Point'].play()  # Play Point.mp3 for successful scoring
+                    
+                    # Change pipes when score reaches 3
+                    if score == 3:
+                        current_pipe = 'Pipe1'
+        else:  # enemy mode
+            for enemy in enemies:
+                enemyMidPosition = enemy['x'] + Game_Photos['Bat'].get_width()/2
+                if enemyMidPosition <= playerMidPosition < enemyMidPosition + 4:
+                    score += 1
+                    print(f"Your score is : {score}")
+                    # No sound in enemy mode - silent scoring
             
             
         if playerVelocity_Y < playerMaxVel_Y and not playerFlapped:
@@ -198,41 +250,59 @@ def mainGame():
         playerHeight = Game_Photos['Player'].get_height()
         playery += min(playerVelocity_Y, GroundY - playery - playerHeight)
 
-        #move pipes to the left 
-        for upperPipe , lowerPipe in zip(upperPipes, lowerPipes):
-            upperPipe['x'] += pipeVelocityX
-            lowerPipe['x'] += pipeVelocityX
-            
-        #Add a new pipe when the first pipe is about to cross the leftmost part of the screen
-        if 0 < upperPipes[0]['x']<5:
-            newpipe = getRandomPipe()
-            upperPipes.append(newpipe[0])
-            lowerPipes.append(newpipe[1])
-            
-        
-        #if the pipe is out of screen , we need to remove it
-        if len(upperPipes) > 0 and upperPipes[0]['x'] < -Game_Photos['Pipe'][0].get_width():
-            upperPipes.pop(0)
-            lowerPipes.pop(0)
+        if game_mode == 'normal':
+            #move pipes to the left 
+            for upperPipe , lowerPipe in zip(upperPipes, lowerPipes):
+                upperPipe['x'] += pipeVelocityX
+                lowerPipe['x'] += pipeVelocityX
+                
+            #Add a new pipe when the first pipe is about to cross the leftmost part of the screen
+            if len(upperPipes) > 0 and 0 < upperPipes[0]['x'] < 5:
+                newpipe = getRandomPipe()
+                upperPipes.append(newpipe[0])
+                lowerPipes.append(newpipe[1])
+                
+            #if the pipe is out of screen , we need to remove it
+            if len(upperPipes) > 0 and upperPipes[0]['x'] < -Game_Photos['Pipe'][0].get_width():
+                upperPipes.pop(0)
+                lowerPipes.pop(0)
+        else:  # enemy mode
+            #move enemies to the left
+            for enemy in enemies:
+                enemy['x'] += pipeVelocityX  # Same speed as pipes
+                
+            #Add a new enemy when needed
+            if len(enemies) > 0 and 0 < enemies[0]['x'] < 5:
+                enemies.append(getRandomEnemy())
+                
+            #Remove enemies that are out of screen
+            if len(enemies) > 0 and enemies[0]['x'] < -Game_Photos['Bat'].get_width():
+                enemies.pop(0)
         
         #Blitting the sprites
-        Screen.blit(Game_Photos['Background'], (0,0))
-        for upperPipe , lowerPipe in zip(upperPipes, lowerPipes):
-            # Draw upper pipe using current pipe
-            Screen.blit(Game_Photos[current_pipe][0],(upperPipe['x'],upperPipe['y']))
+        Screen.blit(Game_Photos[current_background], (0,0))
+        
+        if game_mode == 'normal':
+            # Draw pipes for normal mode
+            for upperPipe , lowerPipe in zip(upperPipes, lowerPipes):
+                # Draw upper pipe using current pipe
+                Screen.blit(Game_Photos[current_pipe][0],(upperPipe['x'],upperPipe['y']))
+                
+                # Draw lower pipe (scaled to reach base)
+                if 'height' in lowerPipe:
+                    # Scale the lower pipe to extend to the base
+                    pipeWidth = Game_Photos[current_pipe][1].get_width()
+                    scaledLowerPipe = pygame.transform.scale(Game_Photos[current_pipe][1], (pipeWidth, lowerPipe['height']))
+                    Screen.blit(scaledLowerPipe,(lowerPipe['x'],lowerPipe['y']))
+                else:
+                    # Fallback to normal pipe
+                    Screen.blit(Game_Photos[current_pipe][1],(lowerPipe['x'],lowerPipe['y']))
+        else:  # enemy mode
+            # Draw enemies (bats)
+            for enemy in enemies:
+                Screen.blit(Game_Photos['Bat'], (enemy['x'], enemy['y']))
             
-            # Draw lower pipe (scaled to reach base)
-            if 'height' in lowerPipe:
-                # Scale the lower pipe to extend to the base
-                pipeWidth = Game_Photos[current_pipe][1].get_width()
-                scaledLowerPipe = pygame.transform.scale(Game_Photos[current_pipe][1], (pipeWidth, lowerPipe['height']))
-                Screen.blit(scaledLowerPipe,(lowerPipe['x'],lowerPipe['y']))
-            else:
-                # Fallback to normal pipe
-                Screen.blit(Game_Photos[current_pipe][1],(lowerPipe['x'],lowerPipe['y']))
-            
-            
-        Screen.blit(Game_Photos['Base'], (basex, GroundY))
+        Screen.blit(Game_Photos[current_base], (basex, GroundY))
         Screen.blit(Game_Photos['Player'], (playerx, playery))
         #Score digits
         myDigits = [int(x) for x in list(str(score))]
@@ -280,16 +350,45 @@ def isCollide(playerx, playery, upperPipes, lowerPipes):
                 return True
     
     return False
+
+def isCollideWithEnemies(playerx, playery, enemies):
+    """
+    Returns True if player collides with enemies or ground/ceiling.
+    """
+    playerHeight = Game_Photos['Player'].get_height()
+    playerWidth = Game_Photos['Player'].get_width()
+
+    # Check if bird hits the ground or ceiling
+    if playery + playerHeight >= GroundY or playery < 0:
+        return True
+    
+    # Check collision with enemies
+    for enemy in enemies:
+        enemyWidth = Game_Photos['Bat'].get_width()
+        enemyHeight = Game_Photos['Bat'].get_height()
+        
+        # Check if bird overlaps with enemy
+        if (playerx < enemy['x'] + enemyWidth and
+            playerx + playerWidth > enemy['x'] and
+            playery < enemy['y'] + enemyHeight and
+            playery + playerHeight > enemy['y']):
+            return True
+    
+    return False
     
             
 def gameOverScreen(score):
     """
     Shows Game Over screen with final score and highest score, waits for mouse click
     """
-    global highest_score
+    global highest_score, game_mode
     # Update highest score if current score is higher
     if score > highest_score:
         highest_score = score
+        
+    # Determine background and base based on current game mode
+    current_background = 'Background1' if game_mode == 'enemy' else 'Background'
+    current_base = 'Base1' if game_mode == 'enemy' else 'Base'
     
     # Load GameOver image if not already loaded
     if 'GameOver' not in Game_Photos:
@@ -326,9 +425,9 @@ def gameOverScreen(score):
             elif event.type == MOUSEBUTTONDOWN:
                 return
         
-        # Keep the game scene visible with GameOver image
-        Screen.blit(Game_Photos['Background'], (0, 0))
-        Screen.blit(Game_Photos['Base'], (0, GroundY))
+        # Keep the game scene visible with GameOver image using current mode's theme
+        Screen.blit(Game_Photos[current_background], (0, 0))
+        Screen.blit(Game_Photos[current_base], (0, GroundY))
         Screen.blit(Game_Photos['GameOver'], (gameOverX, gameOverY))
         
         # Display current score
@@ -379,6 +478,15 @@ def getRandomPipe():
     ]
     
     return pipe
+
+def getRandomEnemy():
+    """
+    Generate a random enemy bat position
+    """
+    enemyY = random.randrange(50, int(GroundY - 100))  # Random Y position avoiding ground and top
+    enemyX = ScreenWidth + 10  # Start from right side
+    
+    return {'x': enemyX, 'y': enemyY}
 
 if __name__ == "__main__":
     #This will be main point from where our game will start
@@ -434,6 +542,9 @@ if __name__ == "__main__":
     Game_Photos['Bird'] = pygame.image.load('Gallery/Photos/Bird.png').convert_alpha()
     Game_Photos['Blue_Bird'] = pygame.image.load('Gallery/Photos/Blue_Bird.png').convert_alpha()
     Game_Photos['Red_Bird'] = pygame.image.load('Gallery/Photos/Red_Bird.png').convert_alpha()
+    
+    # Load enemy bat image
+    Game_Photos['Bat'] = pygame.image.load('Gallery/Photos/bat.png').convert_alpha()
 
     while True: 
         welcomeScreen() #Shows welcome Screen to the user until he presses a button
