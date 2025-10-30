@@ -12,6 +12,7 @@ Screen = pygame.display.set_mode((ScreenWidth,ScreenHeight))
 GroundY = ScreenHeight * 0.8 #For Base
 Game_Photos = {}
 Game_Sound = {}
+highest_score = 0  # Global variable to track highest score
 Player = 'Gallery/Photos/Bird.png'
 Background = 'Gallery/Photos/Background.jpg'
 Pipe = 'Gallery/Photos/pipe.png'
@@ -94,8 +95,12 @@ def mainGame():
         if crashTest:
             Game_Sound['Hit'].play()
             Game_Sound['Die'].play()
-            # Reset player sprite back to bird
-            Game_Photos['Player'] = pygame.image.load(Player).convert_alpha()
+            # Show the final frame for a moment
+            pygame.display.update()
+            pygame.time.wait(500)  # Wait half a second
+            # Show game over screen with final score and wait for click
+            gameOverScreen(score)
+            # Return to let the main loop show welcome screen
             return
         
         #checks the score 
@@ -205,6 +210,64 @@ def isCollide(playerx, playery, upperPipes, lowerPipes):
     return False
     
             
+def gameOverScreen(score):
+    """
+    Shows Game Over screen with final score and highest score, waits for mouse click
+    """
+    global highest_score
+    # Update highest score if current score is higher
+    if score > highest_score:
+        highest_score = score
+    
+    # Load GameOver image if not already loaded
+    if 'GameOver' not in Game_Photos:
+        Game_Photos['GameOver'] = pygame.image.load('Gallery/Photos/GameOver.png').convert_alpha()
+    
+    # Center the GameOver image horizontally and place it slightly above center vertically
+    gameOverX = (ScreenWidth - Game_Photos['GameOver'].get_width()) // 2
+    gameOverY = (ScreenHeight - Game_Photos['GameOver'].get_height()) // 2 - 50  # Move up by 50 pixels
+    
+    # Create font for displaying score
+    font = pygame.font.Font(None, 36)  # None uses default font, 36 is the size
+    
+    # Current score
+    score_text = str(score)  # Convert score to text
+    score_surface = font.render(score_text, True, (0, 0, 0))  # Black color for text
+    
+    # Highest score
+    highest_score_text = str(highest_score)
+    highest_score_surface = font.render(highest_score_text, True, (0, 0, 0))
+    
+    # Position current score next to "Your Score:" text
+    scoreX = (ScreenWidth - score_surface.get_width()) // 2 + 8
+    scoreY = (ScreenHeight - Game_Photos['GameOver'].get_height()) // 2 + 196
+    
+    # Position highest score next to "Highest Score:" text
+    highscoreX = (ScreenWidth - highest_score_surface.get_width()) // 2 + 20  # Moved right by increasing from 10 to 20
+    highscoreY = scoreY + 29  # Moved up by reducing from 40 to 25
+    
+    while True:
+        for event in pygame.event.get():
+            if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
+                pygame.quit()
+                sys.exit()
+            elif event.type == MOUSEBUTTONDOWN:
+                return
+        
+        # Keep the game scene visible with GameOver image
+        Screen.blit(Game_Photos['Background'], (0, 0))
+        Screen.blit(Game_Photos['Base'], (0, GroundY))
+        Screen.blit(Game_Photos['GameOver'], (gameOverX, gameOverY))
+        
+        # Display current score
+        Screen.blit(score_surface, (scoreX, scoreY))
+        
+        # Display highest score
+        Screen.blit(highest_score_surface, (highscoreX, highscoreY))
+        
+        pygame.display.update()
+        FPSCLOCK.tick(FPS)
+
 def getRandomPipe():
     """
     Generate positions of two pipes (upper and lower) with classic Flappy Bird gap
@@ -250,17 +313,18 @@ if __name__ == "__main__":
     pygame.init() #initialize all pygame modules 
     FPSCLOCK = pygame.time.Clock()
     pygame.display.set_caption('Flappy Bird by Rehan')
-    Game_Photos['numbers'] = (
-        pygame.image.load('Gallery/Photos/0.png').convert_alpha(), #To optimize the image for game
-        pygame.image.load('Gallery/Photos/1.png').convert_alpha(),
-        pygame.image.load('Gallery/Photos/2.png').convert_alpha(),
-        pygame.image.load('Gallery/Photos/3.png').convert_alpha(),
-        pygame.image.load('Gallery/Photos/4.png').convert_alpha(),
-        pygame.image.load('Gallery/Photos/5.png').convert_alpha(),
-        pygame.image.load('Gallery/Photos/6.png').convert_alpha(),
-        pygame.image.load('Gallery/Photos/7.png').convert_alpha(),
-        pygame.image.load('Gallery/Photos/8.png').convert_alpha(),
-        pygame.image.load('Gallery/Photos/9.png').convert_alpha(),
+    # Load number images
+    original_numbers = [pygame.image.load(f'Gallery/Photos/{i}.png').convert_alpha() for i in range(10)]
+    
+    # Create normal size numbers for gameplay
+    Game_Photos['numbers'] = tuple(original_numbers)
+    
+    # Create smaller numbers for game over screen (70% of original size)
+    Game_Photos['small_numbers'] = tuple(
+        pygame.transform.scale(img, 
+            (int(img.get_width() * 0.7), 
+             int(img.get_height() * 0.7)))
+        for img in original_numbers
     )
 
     Game_Photos['message'] = pygame.image.load('Gallery/Photos/message.png').convert_alpha()
@@ -293,4 +357,6 @@ if __name__ == "__main__":
 
     while True: 
         welcomeScreen() #Shows welcome Screen to the user until he presses a button
-        mainGame() #This is the main Game Function 
+        mainGame() #This is the main Game Function
+        # Wait a moment before showing welcome screen again
+        pygame.time.wait(500)
