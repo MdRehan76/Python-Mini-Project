@@ -244,10 +244,12 @@ def mainGame():
         else:  # enemy mode
             for enemy in enemies:
                 enemyMidPosition = enemy['x'] + Game_Photos['Bat'].get_width()/2
-                if enemyMidPosition <= playerMidPosition < enemyMidPosition + 4:
-                    score += 1
-                    print(f"Your score is : {score}")
-                    # No sound in enemy mode - silent scoring
+                if enemyMidPosition <= playerMidPosition < enemyMidPosition + 8:  # Wider detection for faster bats
+                    if 'scored' not in enemy:  # Prevent multiple scoring from same bat
+                        score += 1
+                        print(f"Your score is : {score}")
+                        enemy['scored'] = True  # Mark this enemy as scored
+                        # No sound in enemy mode - silent scoring
             
             
         if playerVelocity_Y < playerMaxVel_Y and not playerFlapped:
@@ -276,12 +278,12 @@ def mainGame():
                 upperPipes.pop(0)
                 lowerPipes.pop(0)
         else:  # enemy mode
-            #move enemies to the left
+            #move enemies to the left with increased velocity
             for enemy in enemies:
-                enemy['x'] += pipeVelocityX  # Same speed as pipes
+                enemy['x'] += pipeVelocityX * 1.5  # Bats move 50% faster than pipes
                 
-            #Add a new enemy when needed
-            if len(enemies) > 0 and 0 < enemies[0]['x'] < 5:
+            #Add a new enemy when needed (adjusted trigger for faster bats)
+            if len(enemies) > 0 and 0 < enemies[0]['x'] < 10:
                 enemies.append(getRandomEnemy())
                 
             #Remove enemies that are out of screen
