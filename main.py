@@ -21,8 +21,19 @@ def welcomeScreen():
     """
     Shows Welcome Images on the screen 
     """ 
-    messagex = int((ScreenHeight - Game_Photos['message'].get_width())/13)
-    messagey = int(ScreenHeight*0.1)
+    # Calculate positions for the new layout
+    # 1) Flappy_Bird.png (title) - centered horizontally, positioned higher
+    titleX = int((ScreenWidth - Game_Photos['title'].get_width()) / 2)
+    titleY = 50  # Fixed position from top
+    
+    # 2) Pipe_Mode.png - centered horizontally, moved up by 150px
+    pipeModeX = int((ScreenWidth - Game_Photos['pipe_mode'].get_width()) / 2)
+    pipeModeY = (titleY + Game_Photos['title'].get_height() + 20) - 90  # Moved up by 150px
+    
+    # 3) Enemy_Mode.png - centered horizontally, moved up by 150px
+    enemyModeX = int((ScreenWidth - Game_Photos['enemy_mode'].get_width()) / 2)
+    enemyModeY = (pipeModeY + Game_Photos['pipe_mode'].get_height() + 15) - 150  # Moved up by 150px
+    
     PlayerX = int(ScreenWidth/7)
     PlayerY = int((ScreenHeight - Game_Photos['Player'].get_height())/2)
     basex = 0
@@ -40,10 +51,16 @@ def welcomeScreen():
             elif event.type == MOUSEBUTTONDOWN:
                 return
             else:
+                # Draw background first
                 Screen.blit(Game_Photos['Background'],(0,0)) 
-                Screen.blit(Game_Photos['Player'],(PlayerX,PlayerY)) 
-                Screen.blit(Game_Photos['message'],(messagex,messagey)) 
                 Screen.blit(Game_Photos['Base'],(basex,GroundY )) 
+                Screen.blit(Game_Photos['Player'],(PlayerX,PlayerY)) 
+                
+                # Draw menu elements on top (in proper order)
+                Screen.blit(Game_Photos['title'],(titleX,titleY)) 
+                Screen.blit(Game_Photos['pipe_mode'],(pipeModeX,pipeModeY)) 
+                Screen.blit(Game_Photos['enemy_mode'],(enemyModeX,enemyModeY)) 
+                
                 pygame.display.update()
                 FPSCLOCK.tick(FPS) # To Control the game FPS
 def mainGame():
@@ -239,11 +256,11 @@ def gameOverScreen(score):
     highest_score_surface = font.render(highest_score_text, True, (0, 0, 0))
     
     # Position current score next to "Your Score:" text
-    scoreX = (ScreenWidth - score_surface.get_width()) // 2 + 8
+    scoreX = (ScreenWidth - score_surface.get_width()) // 2 + 12
     scoreY = (ScreenHeight - Game_Photos['GameOver'].get_height()) // 2 + 196
     
     # Position highest score next to "Highest Score:" text
-    highscoreX = (ScreenWidth - highest_score_surface.get_width()) // 2 + 20  # Moved right by increasing from 10 to 20
+    highscoreX = (ScreenWidth - highest_score_surface.get_width()) // 2 + 24  # Moved right by increasing from 10 to 20
     highscoreY = scoreY + 29  # Moved up by reducing from 40 to 25
     
     while True:
@@ -327,7 +344,10 @@ if __name__ == "__main__":
         for img in original_numbers
     )
 
-    Game_Photos['message'] = pygame.image.load('Gallery/Photos/message.png').convert_alpha()
+    # Load new welcome screen images
+    Game_Photos['title'] = pygame.image.load('Gallery/Photos/Flappy _Bird.png').convert_alpha()
+    Game_Photos['pipe_mode'] = pygame.image.load('Gallery/Photos/Pipe_Mode.png').convert_alpha()
+    Game_Photos['enemy_mode'] = pygame.image.load('Gallery/Photos/Enemy_Mode.png').convert_alpha()
     Game_Photos['Base'] = pygame.image.load('Gallery/Photos/Base.png').convert_alpha()
     Game_Photos['Base1'] = pygame.image.load('Gallery/Photos/Base1.png').convert_alpha()
     # Load and scale pipes to classic Flappy Bird size
