@@ -141,6 +141,12 @@ def mainGame():
     playery = int(ScreenWidth/2)
     basex = 0
     
+    # Initialize powerup system
+    powerups = []
+    last_powerup_score = 0
+    should_spawn_powerup = False
+    print("Game started - powerup system initialized")
+    
     # Variables to track game elements based on mode
     current_pipe = 'Pipe'
     current_background = 'Background1' if game_mode == 'enemy' else 'Background'
@@ -242,10 +248,6 @@ def mainGame():
                     score += 1
                     print(f"Your score is : {score}")
                     Game_Sound['Point'].play()  # Play Point.mp3 for successful scoring
-                    
-                    # Change pipes when score reaches 3
-                    if score == 3:
-                        current_pipe = 'Pipe1'
         else:  # enemy mode
             for enemy in enemies:
                 enemyMidPosition = enemy['x'] + Game_Photos['Bat'].get_width()/2
@@ -282,6 +284,55 @@ def mainGame():
             if len(upperPipes) > 0 and upperPipes[0]['x'] < -Game_Photos['Pipe'][0].get_width():
                 upperPipes.pop(0)
                 lowerPipes.pop(0)
+                
+            # Handle powerup spawning at score intervals of 5 (no upper limit)
+            if score >= 5 and score % 5 == 0 and score != last_powerup_score:
+                last_powerup_score = score
+                should_spawn_powerup = True
+                print(f"Score {score} reached - preparing to spawn powerup")
+            
+            # Spawn powerup if conditions are met
+            if should_spawn_powerup and len(upperPipes) >= 2:
+                print("Attempting to spawn powerup between pipes")
+                # Spawn powerup ahead of the rightmost pipe
+                rightmost_pipe = upperPipes[-1]
+                powerup_x = rightmost_pipe['x'] + 150  # 150px after the rightmost pipe
+                
+                # Choose position: either above upper pipe or below lower pipe
+                if random.choice([True, False]):
+                    # Above upper pipe (50px above)
+                    powerup_y = rightmost_pipe['y'] - 50
+                    # Make sure it's not too high
+                    powerup_y = max(50, powerup_y)
+                else:
+                    # Below lower pipe (50px below)
+                    lower_pipe_bottom = lowerPipes[-1]['y'] + Game_Photos['Pipe'][0].get_height()
+                    powerup_y = lower_pipe_bottom + 50
+                    # Make sure it's not too low
+                    powerup_y = min(powerup_y, GroundY - 100)
+                
+                powerups.append({'x': powerup_x, 'y': powerup_y})
+                print(f"Spawned powerup at x:{powerup_x}, y:{powerup_y}")
+                should_spawn_powerup = False
+            
+            # Move existing powerups
+            remaining_powerups = []
+            for powerup in powerups:
+                powerup['x'] += pipeVelocityX  # Move with same speed as pipes
+                
+                # Check for collision with bird
+                if (playerx < powerup['x'] + Game_Photos['PowerUp'].get_width() and
+                    playerx + Game_Photos['Player'].get_width() > powerup['x'] and
+                    playery < powerup['y'] + Game_Photos['PowerUp'].get_height() and
+                    playery + Game_Photos['Player'].get_height() > powerup['y']):
+                    Game_Sound['Point'].play()  # Play sound when collected
+                else:
+                    # Keep powerup if it's still on screen and not collected
+                    if powerup['x'] > -Game_Photos['PowerUp'].get_width():
+                        remaining_powerups.append(powerup)
+            
+            powerups = remaining_powerups
+            
         else:  # enemy mode
             #move enemies to the left with increased velocity
             for enemy in enemies:
@@ -297,6 +348,15 @@ def mainGame():
         
         #Blitting the sprites
         Screen.blit(Game_Photos[current_background], (0,0))
+        
+        # Draw powerups in normal mode
+        if game_mode == 'normal':
+            # Print debug info about powerups
+            if score >= 5:
+                print(f"Current score: {score}, Number of powerups: {len(powerups)}")
+                for powerup in powerups:
+                    Screen.blit(Game_Photos['PowerUp'], (powerup['x'], powerup['y']))
+                    print(f"Drawing powerup at position: x={powerup['x']}, y={powerup['y']}")
         
         if game_mode == 'normal':
             # Draw pipes for normal mode
@@ -564,6 +624,13 @@ if __name__ == "__main__":
     
     # Load enemy bat image
     Game_Photos['Bat'] = pygame.image.load('Gallery/Photos/bat.png').convert_alpha()
+    
+    # Load powerup image
+    try:
+        Game_Photos['PowerUp'] = pygame.image.load('Gallery/Photos/powerup.png').convert_alpha()
+        print("PowerUp image loaded successfully")
+    except Exception as e:
+        print(f"Error loading powerup image: {e}")
 
     while True: 
         welcomeScreen() #Shows welcome Screen to the user until he presses a button
