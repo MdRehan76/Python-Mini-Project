@@ -28,14 +28,14 @@ def welcomeScreen():
     
     # 2) Pipe_Mode.png - centered horizontally, moved up by 150px
     pipeModeX = int((ScreenWidth - Game_Photos['pipe_mode'].get_width()) / 2)
-    pipeModeY = (titleY + Game_Photos['title'].get_height() + 20) - 90  # Moved up by 150px
+    pipeModeY = (titleY + Game_Photos['title'].get_height() + 20) - 110  # Moved up by 150px
     
     # 3) Enemy_Mode.png - centered horizontally, moved up by 150px
     enemyModeX = int((ScreenWidth - Game_Photos['enemy_mode'].get_width()) / 2)
-    enemyModeY = (pipeModeY + Game_Photos['pipe_mode'].get_height() + 15) - 150  # Moved up by 150px
+    enemyModeY = (pipeModeY + Game_Photos['pipe_mode'].get_height() + 15) - 170  # Moved up by 150px
     
     PlayerX = int(ScreenWidth/7)
-    PlayerY = int((ScreenHeight - Game_Photos['Player'].get_height())/2)
+    PlayerY = int((ScreenHeight - Game_Photos['Player'].get_height())/3)
     basex = 0
 
     while True:
