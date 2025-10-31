@@ -97,3 +97,10 @@ python .\main.py
 
 ---
 
+Screenshots 
+
+![alt text](<Gallery/Screenshots/Screenshot 1.png>)
+![alt text](<Gallery/Screenshots/Screenshot 2.png>)
+![alt text](<Gallery/Screenshots/Screenshot 3.png>)
+![alt text](<Gallery/Screenshots/Screenshot 4.png>)
+![alt text](<Gallery/Screenshots/Screenshot 5.png>)
