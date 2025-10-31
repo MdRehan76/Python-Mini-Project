@@ -30,7 +30,7 @@ def welcomeScreen():
     """
     Shows Welcome Images on the screen 
     """ 
-    global current_bird_index, Player
+    global current_bird_index, Player, game_mode
     
     # Calculate positions for the new layout
     # 1) Flappy_Bird.png (title) - centered horizontally, positioned higher
@@ -62,13 +62,14 @@ def welcomeScreen():
                 sys.exit()
 
             elif event.type == KEYDOWN and (event.key == K_SPACE or event.key == K_UP):
-                return
+                # Prevent keyboard from starting the game
+                pass
             
             elif event.type == MOUSEBUTTONDOWN:
                 mouse_x, mouse_y = pygame.mouse.get_pos()
                 button_size = 60  # Same as in drawing section
                 
-                # Check if click is on Change Bird button
+                # Handle different click areas
                 if (changeBirdX <= mouse_x <= changeBirdX + button_size and 
                     changeBirdY <= mouse_y <= changeBirdY + button_size):
                     # Cycle to next bird
@@ -80,7 +81,6 @@ def welcomeScreen():
                 # Check if click is on Enemy Mode button
                 elif (enemyModeX <= mouse_x <= enemyModeX + Game_Photos['enemy_mode'].get_width() and
                       enemyModeY <= mouse_y <= enemyModeY + Game_Photos['enemy_mode'].get_height()):
-                    global game_mode
                     game_mode = 'enemy'
                     return  # Start enemy mode
                 
@@ -90,8 +90,9 @@ def welcomeScreen():
                     game_mode = 'normal'
                     return  # Start normal mode
                 
+                # All other clicks (including title) do nothing
                 else:
-                    return  # Start game if clicked elsewhere
+                    pass
             else:
                 # Draw background first
                 Screen.blit(Game_Photos['Background'],(0,0)) 
@@ -245,10 +246,13 @@ def mainGame():
                 pygame.time.wait(500)  # Wait half a second
                 Game_Sound['Die'].play()
             
-            # Show game over screen with final score and wait for click
-            gameOverScreen(score)
-            # Return to let the main loop show welcome screen
-            return
+            # Show game over screen and wait for restart button click
+            if gameOverScreen(score):
+                # Return True if restart button was clicked
+                return True
+            else:
+                # Return False if game was quit
+                return False
         
         #checks the score 
         playerMidPosition = playerx + Game_Photos['Player'].get_width()/2
@@ -299,13 +303,13 @@ def mainGame():
                 upperPipes.pop(0)
                 lowerPipes.pop(0)
                 
-            # Handle powerup spawning at score intervals of 14
-            if score >= 14:
+            # Handle powerup spawning at score intervals of 12
+            if score >= 12:
                 # Warn player when approaching powerup spawn
-                if score % 14 == 13:
+                if score % 12 == 11:
                     print("Get ready! Powerup coming up next!")
                 
-                if score % 14 == 0 and score != last_powerup_score:
+                if score % 12 == 0 and score != last_powerup_score:
                     last_powerup_score = score
                     should_spawn_powerup = True
                     print(f"Score {score} reached - powerup has spawned!")
@@ -377,7 +381,7 @@ def mainGame():
         # Draw powerups in normal mode
         if game_mode == 'normal':
             # Print debug info about powerups only when debug is enabled
-            if score >= 14:
+            if score >= 12:
                 if POWERUP_DEBUG:
                     print(f"Current score: {score}, Number of powerups: {len(powerups)}")
                 for powerup in powerups:
@@ -526,7 +530,8 @@ def isCollideWithEnemies(playerx, playery, enemies):
             
 def gameOverScreen(score):
     """
-    Shows Game Over screen with final score and highest score, waits for mouse click
+    Shows Game Over screen with final score and highest score.
+    Returns True if restart button was clicked, False otherwise.
     """
     global highest_score, game_mode
     # Update highest score if current score is higher
@@ -557,12 +562,12 @@ def gameOverScreen(score):
     highest_score_surface = font.render(highest_score_text, True, (0, 0, 0))
     
     # Position current score next to "Your Score:" text
-    scoreX = (ScreenWidth - score_surface.get_width()) // 2 + 12
-    scoreY = (ScreenHeight - Game_Photos['GameOver'].get_height()) // 2 + 196
+    scoreX = (ScreenWidth - score_surface.get_width()) // 2 + 55
+    scoreY = (ScreenHeight - Game_Photos['GameOver'].get_height()) // 2 + 193
     
     # Position highest score next to "Highest Score:" text
-    highscoreX = (ScreenWidth - highest_score_surface.get_width()) // 2 + 24  # Moved right by increasing from 10 to 20
-    highscoreY = scoreY + 29  # Moved up by reducing from 40 to 25
+    highscoreX = (ScreenWidth - highest_score_surface.get_width()) // 2 + 55  # Moved right by increasing from 10 to 20
+    highscoreY = scoreY + 34  # Moved up by reducing from 40 to 25
     
     while True:
         for event in pygame.event.get():
@@ -570,7 +575,35 @@ def gameOverScreen(score):
                 pygame.quit()
                 sys.exit()
             elif event.type == MOUSEBUTTONDOWN:
-                return
+                # Get mouse position
+                mouse_x, mouse_y = pygame.mouse.get_pos()
+                print(f"Clicked at position: x={mouse_x}, y={mouse_y}")
+                
+                # Calculate the restart button area based on game over image position
+                restart_x_min = gameOverX + 117  # Relative to game over image X
+                restart_x_max = gameOverX + 259  # Relative to game over image X
+                restart_y_min = gameOverY + 351  # Relative to game over image Y
+                restart_y_max = gameOverY + 393  # Relative to game over image Y
+                
+                # Draw visual debug rectangle
+                debug_rect = pygame.Rect(restart_x_min, restart_y_min, 
+                                       restart_x_max - restart_x_min, 
+                                       restart_y_max - restart_y_min)
+                Screen.blit(Game_Photos['GameOver'], (gameOverX, gameOverY))  # Redraw game over image
+                pygame.draw.rect(Screen, (255, 0, 0), debug_rect, 2)  # Red rectangle
+                
+                # Print debug info
+                print(f"Restart button area: X({restart_x_min}, {restart_x_max}), Y({restart_y_min}, {restart_y_max})")
+                
+                # Check if click is within restart area
+                if (restart_x_min <= mouse_x <= restart_x_max and 
+                    restart_y_min <= mouse_y <= restart_y_max):
+                    print("Click detected in restart area - Restarting game!")
+                    return True  # Make sure we return True to trigger restart
+                else:
+                    print("Click was outside restart area - No action taken")
+                
+                pygame.display.update()
         
         # Keep the game scene visible with GameOver image using current mode's theme
         Screen.blit(Game_Photos[current_background], (0, 0))
@@ -639,7 +672,7 @@ if __name__ == "__main__":
     #This will be main point from where our game will start
     pygame.init() #initialize all pygame modules 
     FPSCLOCK = pygame.time.Clock()
-    pygame.display.set_caption('Flappy Bird by Rehan')
+    pygame.display.set_caption('Flappy Bird')
     # Load number images
     original_numbers = [pygame.image.load(f'Gallery/Photos/{i}.png').convert_alpha() for i in range(10)]
     
