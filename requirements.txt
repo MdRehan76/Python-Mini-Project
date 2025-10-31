@@ -1,0 +1,4 @@
+# Requirements for Flappy Bird Python/PyGame Mini Project
+# Install with: pip install -r requirements.txt
+pip install pygame
+pygame>=2.1.0
