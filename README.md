@@ -40,7 +40,58 @@ python .\main.py
 
 ---
 
-4) User Interface & Rendering 🖼️
+4) File Structure 📁
+```
+Python-Mini-Project/
+├── main.py                    # Main game file with all game logic
+├── README.md                  # Project documentation
+├── requirements.txt           # Python dependencies
+├── tempCodeRunnerFile.py      # Temporary execution file
+├── tempfix.py                 # Temporary fix file
+├── __pycache__/               # Python bytecode cache
+├── Gallery/                   # Game assets directory
+│   ├── Photos/                # Image assets
+│   │   ├── Bird.png           # Default bird sprite
+│   │   ├── Blue_Bird.png      # Blue bird variant
+│   │   ├── Red_Bird.png       # Red bird variant
+│   │   ├── Background.jpg     # Normal mode background
+│   │   ├── Background1.png    # Enemy mode background
+│   │   ├── Base.png           # Normal mode ground
+│   │   ├── Base1.png          # Enemy mode ground
+│   │   ├── pipe.png           # Default pipe sprite
+│   │   ├── pipe1.png          # Alternate pipe sprite
+│   │   ├── bat.png            # Enemy bat sprite
+│   │   ├── powerup1.png       # Height boost powerup
+│   │   ├── powerup2.png       # Width boost powerup
+│   │   ├── powerup3.png       # Invulnerability powerup
+│   │   ├── GameOver.png       # Game over screen
+│   │   ├── Flappy _Bird.png   # Title screen
+│   │   ├── Pipe_Mode.png      # Normal mode button
+│   │   ├── Enemy_Mode.png     # Enemy mode button
+│   │   └── [0-9].png          # Number sprites for scoring
+│   ├── Sound/                 # Audio assets
+│   │   ├── Wing.mp3           # Bird flap sound
+│   │   ├── Point.mp3          # Score point sound
+│   │   ├── Hit.mp3            # Collision sound (normal mode)
+│   │   ├── Die.mp3            # Death sound
+│   │   ├── Swoosh.mp3         # UI/collision sound (enemy mode)
+│   │   └── Background1.mp3    # Enemy mode background music
+│   └── Screenshots/           # Game screenshots
+│       ├── Screenshot 1.png   # Welcome screen
+│       ├── Screenshot 2.png   # Normal gameplay
+│       ├── Screenshot 3.png   # Enemy mode gameplay
+│       ├── Screenshot 4.png   # Powerup effects
+│       └── Screenshot 5.png   # Game over screen
+└── game/                      # Additional game modules
+    ├── __init__.py            # Package initializer
+    ├── constants.py           # Game constants
+    ├── game.py                # Additional game logic
+    └── __pycache__/           # Module bytecode cache
+```
+
+---
+
+5) User Interface & Rendering 🖼️
 - Built with PyGame surfaces; sprites are blitted each frame over the background and base
 - Score is rendered at the top; powerups are drawn as world sprites and collected on overlap
 - Two backgrounds/bases (normal and enemy mode) with corresponding obstacles (pipes/bats)
@@ -51,7 +102,7 @@ python .\main.py
 
 ---
 
-5) Architecture & Design 🏗️
+6) Architecture & Design 🏗️
 - Game loop and state management in `main.py`
 	- Welcome screen → gameplay → game-over screen → restart
 	- Modes: `normal` (pipes + powerups) and `enemy` (bats + music)
@@ -69,7 +120,7 @@ python .\main.py
 
 ---
 
-6) Concepts Learned 📚
+7) Concepts Learned 📚
 - Building a real-time game loop (input → update → render) at a fixed timestep
 - Sprite rendering, layering, and simple particle/indicator effects
 - Axis-aligned collision checks for player vs. obstacles/powerups
@@ -79,8 +130,8 @@ python .\main.py
 
 ---
 
-7) Challenges Faced 🧩
-- Powerup timing: switching from “delayed” to “immediate” activation without side-effects
+8) Challenges Faced 🧩
+- Powerup timing: switching from "delayed" to "immediate" activation without side-effects
 - Consistent feel: keeping spacing and gap sizes fair when powerups start/stop
 - Restart UX: allowing spacebar and precise click region without accidental restarts
 - Asset cohesion: balancing visibility/readability of sprites, backgrounds, and HUD
@@ -88,7 +139,7 @@ python .\main.py
 
 ---
 
-8) Future Improvements 🚀
+9) Future Improvements 🚀
 - Leaderboard with high scores (local file or online backend)
 - Achievements for score milestones and no-hit runs
 - Additional obstacles and themed levels; daily challenges
