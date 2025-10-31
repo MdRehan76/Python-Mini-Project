@@ -23,9 +23,7 @@ powerup_pipes_remaining = 0  # How many pipes the powerup affects
 powerups_on_screen = []  # List of powerups currently on screen
 powerup_collected_time = 0  # Track when powerup was collected for burst effect
 pipe_creation_effects = []  # Track visual effects when pipes are created
-powerup2_bonus_next_pipe = False  # Track if next pipe should get 25px bonus after powerup2 ends
-pending_powerup = None  # Powerup waiting to be activated after next pipe
-pending_powerup_delay = 0  # How many pipes to skip before activation (1 = skip next pipe)
+## Powerup2 now returns to normal spacing immediately after ending
 bird_options = ['Gallery/Photos/Bird.png', 'Gallery/Photos/Blue_Bird.png', 'Gallery/Photos/Red_Bird.png']
 Player = bird_options[current_bird_index]  # Use current bird selection
 Background = 'Gallery/Photos/Background.jpg'
@@ -174,7 +172,7 @@ def getPowerupType(score):
     return None
 
 def mainGame():
-    global game_mode, active_powerup, powerup_pipes_remaining, powerups_on_screen, powerup_collected_time, pipe_creation_effects, powerup2_bonus_next_pipe, pending_powerup, pending_powerup_delay
+    global game_mode, active_powerup, powerup_pipes_remaining, powerups_on_screen, powerup_collected_time, pipe_creation_effects
     score = 0
     playerx = int(ScreenWidth/5)
     playery = int(ScreenWidth/2)
@@ -188,9 +186,7 @@ def mainGame():
     powerup_collected_time = 0
     pipe_creation_effects = []
     last_pipe_x = 0  # Track last pipe position for spacing effects
-    powerup2_bonus_next_pipe = False  # Initialize powerup2 bonus flag
-    pending_powerup = None
-    pending_powerup_delay = 0
+    ## Powerup2 returns to normal spacing after ending
     
     # Variables to track game elements based on mode
     current_pipe = 'Pipe'
@@ -398,12 +394,20 @@ def mainGame():
                     playery < powerup['y'] + Game_Photos[powerup['type']].get_height() and
                     playery + Game_Photos['Player'].get_height() > powerup['y']):
                     
-                    # Set powerup to pending so it activates after skipping the next pipe
-                    pending_powerup = powerup['type']
-                    pending_powerup_delay = 1  # skip the upcoming pipe, activate on the following one
+                    # Activate powerup immediately
+                    active_powerup = powerup['type']
+                    powerup_pipes_remaining = 3  # All powerups last for 3 pipes
                     powerup_collected_time = pygame.time.get_ticks()  # Record collection time
                     Game_Sound['Point'].play()
-                    print(f"Collected {powerup['type']}! Will activate after the next pipe (pending).")
+                    print(f"Collected {powerup['type']}! Effect activated immediately!")
+                    
+                    # Apply immediate visual effects based on powerup type
+                    if powerup['type'] == 'powerup1':
+                        print("Height boost activated! Increased pipe gap for 3 pipes.")
+                    elif powerup['type'] == 'powerup2':
+                        print("Width boost activated! Increased pipe spacing for 3 pipes.")
+                    elif powerup['type'] == 'powerup3':
+                        print("Invulnerability activated! You are invincible for 3 pipes!")
                 else:
                     # Keep powerup if still on screen and not collected
                     if powerup['x'] > -Game_Photos[powerup['type']].get_width():
@@ -419,10 +423,7 @@ def mainGame():
                     # Keep spacing indicators if they're on screen and not expired
                     if effect['x2'] > -100 and current_time - effect['start_time'] < 3000:
                         remaining_effects.append(effect)
-                elif effect['type'] == 'bonus_spacing':
-                    # Keep bonus spacing effects if they're on screen and not expired
-                    if effect['x'] > -100 and current_time - effect['start_time'] < 1500:
-                        remaining_effects.append(effect)
+                # bonus_spacing effects removed - no longer used
                 else:
                     # Keep other effects if they're on screen and not expired
                     if effect['x'] > -100 and current_time - effect['start_time'] < 3000:
@@ -615,38 +616,7 @@ def mainGame():
                             text_y = line_y - 25
                             Screen.blit(text_surface, (int(text_x), int(text_y)))
             
-            elif effect['type'] == 'bonus_spacing':
-                time_elapsed = current_time - effect['start_time']
-                if time_elapsed < 1200:  # Effect lasts 1.2 seconds
-                    progress = time_elapsed / 1200.0
-                    alpha = int(255 * (1 - progress))  # Fade out
-                    
-                    # Create bonus spacing indicator
-                    bonus_color = (255, 165, 0, alpha)  # Orange color for bonus
-                    center_x = effect['x']
-                    center_y = effect['y']
-                    
-                    # Create surface for the bonus effect
-                    effect_surface = pygame.Surface((50, 25), pygame.SRCALPHA)
-                    
-                    # Draw "BONUS" text
-                    if time_elapsed < 600:  # Show text for first half of effect
-                        text_font = pygame.font.Font(None, 16)
-                        text_surface = text_font.render("BONUS", True, (255, 165, 0))
-                        effect_surface.blit(text_surface, (5, 0))
-                    
-                    # Draw "+25px" text
-                    text_font = pygame.font.Font(None, 14)
-                    text_surface = text_font.render("+25px", True, (255, 200, 0))
-                    effect_surface.blit(text_surface, (8, 12))
-                    
-                    # Add small sparkle effects
-                    for i in range(3):
-                        sparkle_x = 15 + i * 8 + math.sin(time_elapsed / 100 + i) * 3
-                        sparkle_y = 6 + math.cos(time_elapsed / 80 + i) * 2
-                        pygame.draw.circle(effect_surface, (255, 215, 0), (int(sparkle_x), int(sparkle_y)), 1)
-                    
-                    Screen.blit(effect_surface, (center_x, center_y - 12))
+            # bonus_spacing effect removed - pipes return to normal spacing after powerup2
             
         Screen.blit(Game_Photos[current_base], (basex, GroundY))
         
@@ -987,22 +957,21 @@ def getRandomPipe():
     Generate positions of two pipes (upper and lower) with classic Flappy Bird gap
     Lower pipe ALWAYS extends to the base, upper pipe comes from top
     """
-    global active_powerup, powerup_pipes_remaining, powerup2_bonus_next_pipe, pending_powerup, pending_powerup_delay
-    activate_after_creation = False
+    global active_powerup, powerup_pipes_remaining
     
     pipeHeight = Game_Photos['Pipe'][0].get_height()
     
-    # Base gap size
-    gapSize = 100
+    # Base gap size - improved for better gameplay
+    gapSize = 120  # Increased from 100 to 120 for more comfortable gameplay
     
     # Apply powerup effects
     if active_powerup == 'powerup1' and powerup_pipes_remaining > 0:
         # Dramatically increase height (gap size) for powerup1
-        gapSize = 180  # 80% larger gap (much more noticeable)
+        gapSize = 200  # Even larger gap to maintain significant difference
         print(f"Powerup1 active: Increased gap height to {gapSize}")
     elif active_powerup == 'powerup2' and powerup_pipes_remaining > 0:
         # For powerup2, we'll handle width in the pipe positioning
-        print(f"Powerup2 active: Increased pipe width spacing")
+        print(f"Powerup2 active: Increased horizontal pipe spacing to 150px")
     
     # Calculate the range where gap can be positioned
     minGapY = 80  # Minimum distance from top
@@ -1011,26 +980,15 @@ def getRandomPipe():
     # Random position for the gap TOP edge
     gapTopY = random.randrange(minGapY, maxGapY)
     
-    pipeX = ScreenWidth + 10
+    # Base pipe spacing - significantly improved for comfortable gameplay
+    pipeX = ScreenWidth + 50  # Increased base spacing for much better playability
     
     # Apply powerup2 effect (much wider spacing between pipes)
     if active_powerup == 'powerup2' and powerup_pipes_remaining > 0:
-        pipeX = ScreenWidth + 120  # Much more dramatic spacing between pipes (140% increase)
-    elif powerup2_bonus_next_pipe:
-        # Apply 25px bonus spacing for the next pipe after powerup2 ends
-        pipeX = ScreenWidth + 35  # 25px extra spacing
-        powerup2_bonus_next_pipe = False  # Reset the bonus flag
-        print("Powerup2 bonus: Next pipe has +25px spacing")
+        pipeX = ScreenWidth + 150  # Extra wide spacing during powerup2 (200% increase from base)
+    # After powerup2 ends, pipes return to improved normal spacing (ScreenWidth + 50)
 
-    # Handle pending powerup activation scheduling: if a powerup was collected, we skip one pipe
-    # and activate the powerup after that skipped pipe so the effect starts from the following pipe.
-    if pending_powerup is not None:
-        # Decrement delay; when it reaches 0, mark to activate AFTER creating this pipe
-        if pending_powerup_delay > 0:
-            pending_powerup_delay -= 1
-            print(f"Pending powerup {pending_powerup}: will activate after skipping {pending_powerup_delay} more pipe(s)")
-        if pending_powerup_delay <= 0:
-            activate_after_creation = True
+    # Powerups are now activated immediately when collected, no pending system needed
     
     # Upper pipe - comes down from top, bottom edge at gap top
     upperPipeY = gapTopY - pipeHeight
@@ -1045,15 +1003,7 @@ def getRandomPipe():
         lowerPipeHeight = 100  # Minimum height fallback
         lowerPipeY = int(GroundY - lowerPipeHeight)
     
-    # Add visual effect for powerup2 bonus spacing if it was just applied
-    if pipeX == ScreenWidth + 35:  # This means bonus spacing was applied
-        gap_center_y = gapTopY + gapSize / 2
-        pipe_creation_effects.append({
-            'type': 'bonus_spacing',
-            'x': pipeX - 25,
-            'y': gap_center_y,
-            'start_time': pygame.time.get_ticks()
-        })
+    # No bonus spacing effects needed - pipes return to normal after powerup2 ends
     
     # Decrease powerup counter when creating a new pipe (for powerup1 and powerup2 only)
     if active_powerup in ['powerup1', 'powerup2'] and powerup_pipes_remaining > 0:
@@ -1082,20 +1032,10 @@ def getRandomPipe():
         powerup_pipes_remaining -= 1
         print(f"Powerup {active_powerup}: {powerup_pipes_remaining} pipes remaining")
         if powerup_pipes_remaining <= 0:
-            # Check if powerup2 is ending to set bonus flag
-            if active_powerup == 'powerup2':
-                powerup2_bonus_next_pipe = True
-                print("Powerup2 ended! Next pipe will have +25px bonus spacing")
             active_powerup = None
-            print(f"Powerup effect ended!")
+            print(f"Powerup effect ended! Pipes return to normal spacing.")
 
-    # Activate pending powerup here AFTER creating this pipe so the effect starts on subsequent pipes
-    if activate_after_creation and pending_powerup is not None:
-        active_powerup = pending_powerup
-        powerup_pipes_remaining = 3
-        print(f"Powerup {active_powerup} activated! Will affect next {powerup_pipes_remaining} pipes.")
-        pending_powerup = None
-        pending_powerup_delay = 0
+    # Powerups are activated immediately upon collection
     
     pipe = [
         {'x': pipeX, 'y': upperPipeY},                    #Upper pipe (normal height)
