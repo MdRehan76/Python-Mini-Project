@@ -248,7 +248,11 @@ def mainGame():
         if game_mode == 'normal':
             crashTest = isCollide(playerx, playery, upperPipes, lowerPipes)
         else:  # enemy mode
-            crashTest = isCollideWithEnemies(playerx, playery, enemies)
+            # In enemy mode, ignore collisions if powerup3 (invulnerability) is active
+            if active_powerup == 'powerup3':
+                crashTest = False
+            else:
+                crashTest = isCollideWithEnemies(playerx, playery, enemies)
             
         #Above function will return true, if we may have been crashed.
         if crashTest:
@@ -306,6 +310,15 @@ def mainGame():
                         score += 1
                         print(f"Your score is : {score}")
                         enemy['scored'] = True  # Mark this enemy as scored
+                        
+                        # Decrease powerup3 counter when passing enemies
+                        if active_powerup == 'powerup3' and powerup_pipes_remaining > 0:
+                            powerup_pipes_remaining -= 1
+                            print(f"Powerup3 (Enemy Mode): {powerup_pipes_remaining} enemies remaining")
+                            if powerup_pipes_remaining <= 0:
+                                active_powerup = None
+                                print("Powerup3 effect ended in enemy mode!")
+                        
                         # No sound in enemy mode - silent scoring
             
             
@@ -436,19 +449,137 @@ def mainGame():
                 enemy['x'] += pipeVelocityX * 1.5  # Bats move 50% faster than pipes
                 
             #Add a new enemy when needed (adjusted trigger for faster bats)
-            if len(enemies) > 0 and 0 < enemies[0]['x'] < 10:
+            if len(enemies) > 0 and 0 < enemies[0]['x'] < 11:
                 enemies.append(getRandomEnemy())
                 
             #Remove enemies that are out of screen
             if len(enemies) > 0 and enemies[0]['x'] < -Game_Photos['Bat'].get_width():
                 enemies.pop(0)
+            
+            # Handle powerup3 spawning in enemy mode (starts at score 14, then every 15 points: 14, 29, 44, etc.)
+            if score >= 14 and (score - 14) % 15 == 0 and score != last_powerup_score:
+                last_powerup_score = score
+                # Spawn powerup3 (invulnerability) in enemy mode
+                if len(enemies) >= 1:
+                    rightmost_enemy = enemies[-1]
+                    powerup_x = rightmost_enemy['x'] + 150
+                    
+                    # Find a safe Y position that doesn't overlap with any bats
+                    powerup_width = Game_Photos['powerup3'].get_width()
+                    powerup_height = Game_Photos['powerup3'].get_height()
+                    bat_width = Game_Photos['Bat'].get_width()
+                    bat_height = Game_Photos['Bat'].get_height()
+                    
+                    # Try multiple Y positions to find one that doesn't overlap
+                    safe_position_found = False
+                    attempts = 0
+                    max_attempts = 20
+                    
+                    while not safe_position_found and attempts < max_attempts:
+                        powerup_y = random.randrange(100, int(GroundY - 150))
+                        
+                        # Check if this position overlaps with any bat
+                        overlaps = False
+                        for enemy in enemies:
+                            # Check for overlap with current enemy
+                            if (powerup_x < enemy['x'] + bat_width + 50 and  # Add 50px buffer
+                                powerup_x + powerup_width + 50 > enemy['x'] and
+                                powerup_y < enemy['y'] + bat_height + 30 and  # Add 30px buffer
+                                powerup_y + powerup_height + 30 > enemy['y']):
+                                overlaps = True
+                                break
+                        
+                        if not overlaps:
+                            safe_position_found = True
+                        
+                        attempts += 1
+                    
+                    # If safe position found, spawn the powerup
+                    if safe_position_found:
+                        powerups_on_screen.append({
+                            'x': powerup_x,
+                            'y': powerup_y,
+                            'type': 'powerup3'
+                        })
+                        print(f"Spawned powerup3 at score {score} in enemy mode at safe position")
+                    else:
+                        print(f"Could not find safe position for powerup3 at score {score} - skipping spawn")
+            
+            # Move and handle powerup collection in enemy mode
+            remaining_powerups = []
+            for powerup in powerups_on_screen:
+                powerup['x'] += pipeVelocityX * 1.5  # Match enemy velocity
+                
+                # Check collision with player
+                if (playerx < powerup['x'] + Game_Photos[powerup['type']].get_width() and
+                    playerx + Game_Photos['Player'].get_width() > powerup['x'] and
+                    playery < powerup['y'] + Game_Photos[powerup['type']].get_height() and
+                    playery + Game_Photos['Player'].get_height() > powerup['y']):
+                    
+                    # Activate powerup3 immediately
+                    active_powerup = powerup['type']
+                    powerup_pipes_remaining = 5  # Last for 5 enemies in enemy mode
+                    powerup_collected_time = pygame.time.get_ticks()
+                    Game_Sound['Point'].play()
+                    print(f"Collected {powerup['type']}! Invulnerability activated for 5 bats in enemy mode!")
+                else:
+                    # Keep powerup if still on screen and not collected
+                    if powerup['x'] > -Game_Photos[powerup['type']].get_width():
+                        remaining_powerups.append(powerup)
+            
+            powerups_on_screen = remaining_powerups
         
         #Blitting the sprites
         Screen.blit(Game_Photos[current_background], (0,0))
         
-        # Draw powerups
-        if game_mode == 'normal':
-            for powerup in powerups_on_screen:
+        # Draw powerups with special effects for powerup3 in enemy mode
+        for powerup in powerups_on_screen:
+            if powerup['type'] == 'powerup3' and game_mode == 'enemy':
+                # Add glowing effect around powerup3 in enemy mode only
+                import math
+                current_time = pygame.time.get_ticks()
+                
+                # Create pulsing glow effect
+                pulse = abs(math.sin(current_time / 300)) * 0.5 + 0.5  # Pulse between 0.5 and 1.0
+                glow_size = int(15 * pulse)
+                
+                # Multiple glow layers for dramatic effect
+                for layer in range(3):
+                    layer_size = glow_size - layer * 3
+                    layer_alpha = int((80 - layer * 20) * pulse)
+                    
+                    if layer_size > 0 and layer_alpha > 0:
+                        glow_surface = pygame.Surface((Game_Photos[powerup['type']].get_width() + layer_size*2, 
+                                                     Game_Photos[powerup['type']].get_height() + layer_size*2), 
+                                                     pygame.SRCALPHA)
+                        # Golden glow color
+                        glow_color = (255, 215, 0, layer_alpha)
+                        pygame.draw.ellipse(glow_surface, glow_color, 
+                                          (0, 0, glow_surface.get_width(), glow_surface.get_height()))
+                        Screen.blit(glow_surface, (powerup['x'] - layer_size, powerup['y'] - layer_size))
+                
+                # Add rotating particles around powerup3
+                for i in range(6):
+                    angle = (current_time / 20 + i * 60) * math.pi / 180
+                    particle_distance = 25 + math.sin(current_time / 100 + i) * 5
+                    particle_x = powerup['x'] + Game_Photos[powerup['type']].get_width()//2 + math.cos(angle) * particle_distance
+                    particle_y = powerup['y'] + Game_Photos[powerup['type']].get_height()//2 + math.sin(angle) * particle_distance
+                    particle_size = 2 + abs(int(math.sin(current_time / 80 + i)))
+                    pygame.draw.circle(Screen, (255, 215, 0), (int(particle_x), int(particle_y)), particle_size)
+                    pygame.draw.circle(Screen, (255, 255, 255), (int(particle_x), int(particle_y)), max(1, particle_size-1))
+                
+                # Draw the powerup with slight scaling effect
+                scale_factor = 1.0 + 0.1 * math.sin(current_time / 200)
+                powerup_width = int(Game_Photos[powerup['type']].get_width() * scale_factor)
+                powerup_height = int(Game_Photos[powerup['type']].get_height() * scale_factor)
+                scaled_powerup = pygame.transform.scale(Game_Photos[powerup['type']], (powerup_width, powerup_height))
+                
+                # Center the scaled powerup
+                offset_x = (powerup_width - Game_Photos[powerup['type']].get_width()) // 2
+                offset_y = (powerup_height - Game_Photos[powerup['type']].get_height()) // 2
+                Screen.blit(scaled_powerup, (powerup['x'] - offset_x, powerup['y'] - offset_y))
+            else:
+                # Normal powerup drawing for other types or normal mode
                 Screen.blit(Game_Photos[powerup['type']], (powerup['x'], powerup['y']))
         
         if game_mode == 'normal':
@@ -773,7 +904,9 @@ def mainGame():
                 'powerup2': 'Width Boost', 
                 'powerup3': 'Invulnerable'
             }
-            text = font.render(f"{powerup_names[active_powerup]}: {powerup_pipes_remaining} pipes", True, (255, 255, 255))
+            # Show different counter text based on game mode
+            counter_text = "bats" if game_mode == 'enemy' else "pipes"
+            text = font.render(f"{powerup_names[active_powerup]}: {powerup_pipes_remaining} {counter_text}", True, (255, 255, 255))
             Screen.blit(text, (10, 10))
             
         pygame.display.update()
