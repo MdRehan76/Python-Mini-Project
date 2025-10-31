@@ -31,19 +31,18 @@ It demonstrates strong fundamentals in **real-time game loop design**, **collisi
 ## ✨ Features
 
 ✅ **3 Powerups**
-- **Powerup1** — Height Boost (larger gap for next 3 pipes)  
-- **Powerup2** — Width Boost (300px spacing for next 3 pipes, normally 150px)  
-- **Powerup3** — Invulnerability (3 pipes in normal mode; 5 bats in enemy mode)  
-
-🎵 **Audio Effects**
-- Background music (Enemy mode)  
-- Flap, score, hit/die, and UI swoosh sounds  
-
-🎨 **Visual Polish**
-- Dynamic pipe skins (switch every 4 points)  
-- Animated powerup icons with glow effects  
-- Smooth score HUD and particle feedback  
-
+- **3 Color Bird Options**: Choose from 3 different bird colors (default, blue, red) available in both normal and enemy modes
+- **Powerup System** with score-based spawning:
+	- Powerup1 — Height Boost: Appears at Score = 5, 20, 35... (every 15 points starting at 5)
+		- Effect: Larger vertical gap for the next 3 pipes
+	- Powerup2 — Width Boost: Appears at Score = 10, 25, 40... (every 15 points starting at 10)
+		- Effect: Fixed 300px spacing for the next 3 pipes (normal spacing is 150px)
+	- Powerup3 — Invulnerability: Appears at Score = 15, 30, 45... (every 15 points starting at 15)
+		- Normal mode → lasts 3 pipes
+		- Enemy mode → lasts 5 bats; spawns from score 14 (then 29, 44, …)
+- Visual polish: score HUD, animated indicators, particles, subtle effects
+- Audio: flap, point, hit/die, UI swoosh; background music in enemy mode
+- Dynamic pipe sprites: alternate assets used on a 4-point cycle (4/8/12, then repeat)
 ---
 
 ## 🕹️ How to Play
