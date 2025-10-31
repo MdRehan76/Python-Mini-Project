@@ -1,157 +1,177 @@
-Flappy Bird – Python/PyGame Mini Project 🎮
+# 🐤 Flappy Bird – Python/PyGame Mini Project 🎮
 
 ---
 
-1) Project Overview 🎯
-This is a polished Flappy Bird-style game built with Python and PyGame. It features two play modes, three collectible powerups that activate immediately on pickup, dynamic pipe visuals that switch every few points, precise restart controls, sound effects, and a clean user interface. The project showcases core game-loop architecture, sprite rendering, collision detection, and state management.
+## 👥 Team Members & Contributions
 
-Highlights:
-- Normal mode with pipes and powerups
-- Enemy mode with flying bats and background music
-- Fixed horizontal pipe spacing for consistent difficulty: 150px normally, 300px during Powerup2
-- Dynamic pipe skin switching at scores 4, 8, 12 (and repeats)
- - Enemy mode: Powerup3 (invulnerability) starts at score 14, then 29/44…, and lasts for 5 bats
-
-2) Features ✨
-- Powerups :
-	- Powerup1 — Height Boost: Larger vertical gap for the next 3 pipes
-	- Powerup2 — Width Boost: Fixed 300px spacing for the next 3 pipes (normal spacing is 150px)
-	- Powerup3 — Invulnerability:
-		- Normal mode → lasts 3 pipes
-		- Enemy mode → lasts 5 bats; spawns from score 14 (then 29, 44, …)
-- Visual polish: score HUD, animated indicators, particles, subtle effects
-- Audio: flap, point, hit/die, UI swoosh; background music in enemy mode
-- Dynamic pipe sprites: alternate assets used on a 4-point cycle (4/8/12, then repeat)
+| Name        | Roll No. | GitHub ID                | Contribution Highlights            |
+|-------------|----------|--------------------------|------------------------------------|
+| **Rehan**    | 328      | [@MdRehan76](https://github.com/MdRehan76)                | Game logic, UI, core framework, Enemy modes     |
+| **Tanmay**      | 351      | [@This-is-Tanmay](https://github.com/This-is-Tanmay)           | Physics, collisions, scoring, docs, powerup system |
+| **Asmita**      | 331      | [@asmita24beit-cyber](https://github.com/asmita24beit-cyber)       | Art, assets, menu & bug fixes      |
+| **Minakshee**   | 338      | [@minakshee24beit-blip](https://github.com/minakshee24beit-blip)     | Sound, animation, tuning & testing |
 
 ---
 
-3) How to Play 🕹️
-- Press SPACE or the UP arrow to flap the bird
-- Avoid colliding with pipes (or bats in enemy mode)
-- Fly through gaps to score points; pick up powerups for temporary advantages
-- When the game is over, restart with SPACE or by clicking the restart button area
-- Enemy mode: from score 14 onward, collect Powerup3 for 5-bat invulnerability; the HUD shows remaining “bats”
+## 🧭 Project Overview
 
-Optional quick start on Windows (PowerShell):
-```pwsh
+**Flappy Bird – Python/PyGame Edition** is a polished clone of the classic Flappy Bird game, enhanced with **two unique modes**, **dynamic powerups**, **animated visuals**, and **custom sound effects**.
+
+It demonstrates strong fundamentals in **real-time game loop design**, **collision mechanics**, **state management**, and **UI rendering** using the PyGame library.
+
+### 🎯 Highlights
+- **Normal Mode** – Classic pipe dodging gameplay with powerups  
+- **Enemy Mode** – Introduces flying bats, background music, and advanced invulnerability logic  
+- **Dynamic Difficulty** – Pipe visuals switch every few points  
+- **Precision Controls** – Restart via spacebar or click detection  
+- **Optimized Flow** – Clean loop, minimal lag, and responsive HUD
+
+---
+
+## ✨ Features
+
+✅ **3 Powerups**
+- **Powerup1** — Height Boost (larger gap for next 3 pipes)  
+- **Powerup2** — Width Boost (300px spacing for next 3 pipes, normally 150px)  
+- **Powerup3** — Invulnerability (3 pipes in normal mode; 5 bats in enemy mode)  
+
+🎵 **Audio Effects**
+- Background music (Enemy mode)  
+- Flap, score, hit/die, and UI swoosh sounds  
+
+🎨 **Visual Polish**
+- Dynamic pipe skins (switch every 4 points)  
+- Animated powerup icons with glow effects  
+- Smooth score HUD and particle feedback  
+
+---
+
+## 🕹️ How to Play
+
+1. **Press** `SPACE` or `UP Arrow` to flap 🕊️  
+2. **Avoid** colliding with pipes or bats  
+3. **Collect Powerups** to temporarily boost your abilities  
+4. **Restart** with `SPACE` or a click after game over  
+5. **Enemy Mode:** Invulnerability appears from score **14+**, lasting for **5 bats**
+
+💻 **Quick Start (Windows PowerShell)**
+```bash
 pip install pygame
-python .\main.py
-```
+python main.py
+````
 
 ---
 
-4) File Structure 📁
+## 📁 File Structure
+
 ```
 Python-Mini-Project/
-├── main.py                    # Main game file with all game logic
-├── README.md                  # Project documentation
-├── requirements.txt           # Python dependencies
-├── tempCodeRunnerFile.py      # Temporary execution file
-├── tempfix.py                 # Temporary fix file
-├── __pycache__/               # Python bytecode cache
-├── Gallery/                   # Game assets directory
-│   ├── Photos/                # Image assets
-│   │   ├── Bird.png           # Default bird sprite
-│   │   ├── Blue_Bird.png      # Blue bird variant
-│   │   ├── Red_Bird.png       # Red bird variant
-│   │   ├── Background.jpg     # Normal mode background
-│   │   ├── Background1.png    # Enemy mode background
-│   │   ├── Base.png           # Normal mode ground
-│   │   ├── Base1.png          # Enemy mode ground
-│   │   ├── pipe.png           # Default pipe sprite
-│   │   ├── pipe1.png          # Alternate pipe sprite
-│   │   ├── bat.png            # Enemy bat sprite
-│   │   ├── powerup1.png       # Height boost powerup
-│   │   ├── powerup2.png       # Width boost powerup
-│   │   ├── powerup3.png       # Invulnerability powerup
-│   │   ├── GameOver.png       # Game over screen
-│   │   ├── Flappy _Bird.png   # Title screen
-│   │   ├── Pipe_Mode.png      # Normal mode button
-│   │   ├── Enemy_Mode.png     # Enemy mode button
-│   │   └── [0-9].png          # Number sprites for scoring
-│   ├── Sound/                 # Audio assets
-│   │   ├── Wing.mp3           # Bird flap sound
-│   │   ├── Point.mp3          # Score point sound
-│   │   ├── Hit.mp3            # Collision sound (normal mode)
-│   │   ├── Die.mp3            # Death sound
-│   │   ├── Swoosh.mp3         # UI/collision sound (enemy mode)
-│   │   └── Background1.mp3    # Enemy mode background music
-│   └── Screenshots/           # Game screenshots
-│       ├── Screenshot 1.png   # Welcome screen
-│       ├── Screenshot 2.png   # Normal gameplay
-│       ├── Screenshot 3.png   # Enemy mode gameplay
-│       ├── Screenshot 4.png   # Powerup effects
-│       └── Screenshot 5.png   # Game over screen
-└── game/                      # Additional game modules
-    ├── __init__.py            # Package initializer
-    ├── constants.py           # Game constants
-    ├── game.py                # Additional game logic
-    └── __pycache__/           # Module bytecode cache
+├── main.py                    # Main game logic & state management
+├── requirements.txt           # Dependencies
+├── Gallery/
+│   ├── Photos/                # All image assets
+│   ├── Sound/                 # Sound effects & music
+│   └── Screenshots/           # Gameplay screenshots
+├── game/
+│   ├── constants.py           # Game constants
+│   └── game.py                # Additional logic
+└── README.md                  # Documentation
 ```
 
 ---
 
-5) User Interface & Rendering 🖼️
-- Built with PyGame surfaces; sprites are blitted each frame over the background and base
-- Score is rendered at the top; powerups are drawn as world sprites and collected on overlap
-- Two backgrounds/bases (normal and enemy mode) with corresponding obstacles (pipes/bats)
-- Visual effects: powerup feedback (e.g., glow/expand cues), spacing indicators during Powerup2
-- Enemy-mode powerup3 icon adds a pulsing golden glow, rotating particles, and gentle scaling
-- Enemy-mode powerup3 uses safe spawning (no overlap with bats)
-- All assets live under `Gallery/Photos` and `Gallery/Sound`
+## 🖼️ User Interface & Rendering
+
+* Built using **PyGame surfaces** (frame-by-frame rendering)
+* Real-time blitting of sprites over dynamic backgrounds
+* Two visual themes:
+
+  * 🌄 Normal Mode (pipes, blue sky)
+  * 🌌 Enemy Mode (bats, darker ambience)
+* Responsive HUD: score, powerups, invulnerability indicator
+* Smooth animation & powerup glow feedback system
 
 ---
 
-6) Architecture & Design 🏗️
-- Game loop and state management in `main.py`
-	- Welcome screen → gameplay → game-over screen → restart
-	- Modes: `normal` (pipes + powerups) and `enemy` (bats + music)
-- Key functions:
-	- `getPipeType(score)`: cycles pipe sprite variants at 4/8/12 points (repeats)
-	- `getPowerupType(score)`: schedules which powerup to spawn by score milestone
-	- `getRandomPipe()`: computes the upper/lower pipe positions and applies active powerups
-- Powerup system:
-	- Immediate activation on collection
-	- Duration tracked per mode (pipes in normal mode; bats in enemy mode)
-	- Enemy-mode Powerup3: spawns at 14 + 15n, lasts 5 bats, HUD shows “bats” remaining
-	- Fixed horizontal spacing in pipe generation:
-		- 150px normally; 300px during Powerup2 (next 3 pipes)
-- Assets and sounds are loaded once and cached in dictionaries (`Game_Photos`, `Game_Sound`)
+## 🏗️ Architecture & Design
+
+* **Main Game Loop:** Input → Update → Render
+* **Modes:** `normal` (pipes) and `enemy` (bats)
+* **Core Functions:**
+
+  * `getPipeType(score)` → Cycles pipe design (4/8/12 pattern)
+  * `getPowerupType(score)` → Determines spawn timing
+  * `getRandomPipe()` → Computes pipe placement & gap logic
+* **Powerup System:**
+
+  * Instant activation
+  * Duration varies per mode
+  * Invulnerability tracked via HUD counter
 
 ---
 
-7) Concepts Learned 📚
-- Building a real-time game loop (input → update → render) at a fixed timestep
-- Sprite rendering, layering, and simple particle/indicator effects
-- Axis-aligned collision checks for player vs. obstacles/powerups
-- State machines for screens (welcome, gameplay, game over) and modes (normal/enemy)
-- Timing and duration-based mechanics (powerups lasting for N pipes)
-- Deterministic obstacle generation with tunable difficulty via spacing and gap size
+## 📚 Concepts Learned
+
+* Game-loop architecture in PyGame
+* Sprite rendering & layering
+* Collision detection (axis-aligned)
+* State management & restart logic
+* Powerup scheduling & timing control
+* Visual synchronization between audio & feedback
 
 ---
 
-8) Challenges Faced 🧩
-- Powerup timing: switching from "delayed" to "immediate" activation without side-effects
-- Consistent feel: keeping spacing and gap sizes fair when powerups start/stop
-- Restart UX: allowing spacebar and precise click region without accidental restarts
-- Asset cohesion: balancing visibility/readability of sprites, backgrounds, and HUD
-- Mode parity: ensuring enemy-mode scoring and pacing feel comparable to normal mode
+## 🧩 Challenges Faced
+
+* Managing immediate powerup activation logic
+* Maintaining fairness in obstacle spacing
+* Balancing visual readability & aesthetics
+* Syncing audio cues with gameplay
+* Ensuring consistent difficulty across both modes
 
 ---
 
-9) Future Improvements 🚀
-- Leaderboard with high scores (local file or online backend)
-- Achievements for score milestones and no-hit runs
-- Additional obstacles and themed levels; daily challenges
-- Accessibility options: adjustable base difficulty (gap size, gravity)
-- Performance/asset pipeline tweaks (sprite atlases, lazy loads)
+## 🚀 Future Enhancements
+
+* 🏆 Local/Online leaderboard
+* 🎯 Achievements for high scores & streaks
+* 🔥 More levels & themed obstacles
+* ⚙️ Adjustable difficulty settings
+* 💡 Performance optimization (sprite atlases, caching)
 
 ---
 
-Screenshots 
+## 📸 Screenshots
 
-![alt text](<Gallery/Screenshots/Screenshot 1.png>)
-![alt text](<Gallery/Screenshots/Screenshot 2.png>)
-![alt text](<Gallery/Screenshots/Screenshot 3.png>)
-![alt text](<Gallery/Screenshots/Screenshot 4.png>)
-![alt text](<Gallery/Screenshots/Screenshot 5.png>)
+| Gameplay Scene      | Preview                                              |
+| ------------------- | ---------------------------------------------------- |
+| **Welcome Screen**  | ![Welcome](Gallery/Screenshots/Screenshot%201.png)   |
+| **Normal Mode**     | ![Normal](Gallery/Screenshots/Screenshot%202.png)    |
+| **Enemy Mode**      | ![Enemy](Gallery/Screenshots/Screenshot%204.png )     |
+| **Powerup Active** | ![Powerup](Gallery/Screenshots/Screenshot%203.png)  |
+| **Game Over**       | ![Game Over](Gallery/Screenshots/Screenshot%205.png) |
+
+---
+
+## 🧰 Tech Stack
+
+| Layer               | Technology                         |
+| ------------------- | ---------------------------------- |
+| **Language**        | Python                             |
+| **Framework**       | PyGame                             |
+| **IDE**             | VS Code                            |
+| **Version Control** | Git & GitHub                       |
+| **Platform**        | Cross-platform (Windows/Linux/Mac) |
+
+---
+
+## 🌿 Git Workflow
+
+| Branch | Purpose                   | Maintained By      |
+| ------ | ------------------------- | ------------------ |
+| `main` | Final release build       | All members        |
+| `dev`  | Development & testing     | Tanmay             |
+| `game` | Game logic experiments    | Rehan              |
+| `ui`   | Art, sound, and UI tweaks | Asmita & Minakshee |
+
+---
