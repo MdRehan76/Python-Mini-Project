@@ -175,7 +175,7 @@ def mainGame():
     global game_mode, active_powerup, powerup_pipes_remaining, powerups_on_screen, powerup_collected_time, pipe_creation_effects
     score = 0
     playerx = int(ScreenWidth/5)
-    playery = int(ScreenWidth/2)
+    playery = int(ScreenHeight/2)
     basex = 0
     
     # Initialize powerup system
@@ -293,13 +293,13 @@ def mainGame():
                     score += 1
                     print(f"Your score is : {score}")
                     
-                    # Decrease powerup3 counter when passing through pipes
-                    if active_powerup == 'powerup3' and powerup_pipes_remaining > 0:
+                    # Decrease active powerup counter when passing through pipes
+                    if active_powerup and powerup_pipes_remaining > 0:
                         powerup_pipes_remaining -= 1
-                        print(f"Powerup3: {powerup_pipes_remaining} pipes remaining")
+                        print(f"{active_powerup}: {powerup_pipes_remaining} pipes remaining")
                         if powerup_pipes_remaining <= 0:
                             active_powerup = None
-                            print("Powerup3 effect ended!")
+                            print(f"Powerup effect ended!")
                     
                     Game_Sound['Point'].play()  # Play Point.mp3 for successful scoring
         else:  # enemy mode
@@ -311,13 +311,13 @@ def mainGame():
                         print(f"Your score is : {score}")
                         enemy['scored'] = True  # Mark this enemy as scored
                         
-                        # Decrease powerup3 counter when passing enemies
-                        if active_powerup == 'powerup3' and powerup_pipes_remaining > 0:
+                        # Decrease active powerup counter when passing enemies (only powerup3 spawns in enemy mode)
+                        if active_powerup and powerup_pipes_remaining > 0:
                             powerup_pipes_remaining -= 1
-                            print(f"Powerup3 (Enemy Mode): {powerup_pipes_remaining} enemies remaining")
+                            print(f"{active_powerup} (Enemy Mode): {powerup_pipes_remaining} bats remaining")
                             if powerup_pipes_remaining <= 0:
                                 active_powerup = None
-                                print("Powerup3 effect ended in enemy mode!")
+                                print(f"Powerup effect ended in enemy mode!")
                         
                         # No sound in enemy mode - silent scoring
             
@@ -385,7 +385,8 @@ def mainGame():
                     powerup_x = rightmost_pipe['x'] + 150
                     
                     # Position powerup in the middle of the gap
-                    upper_pipe_bottom = rightmost_pipe['y'] + Game_Photos['Pipe'][0].get_height()
+                    current_pipe_type = getPipeType(score)
+                    upper_pipe_bottom = rightmost_pipe['y'] + Game_Photos[current_pipe_type][0].get_height()
                     lower_pipe_top = lowerPipes[-1]['y']
                     gap_center = upper_pipe_bottom + (lower_pipe_top - upper_pipe_bottom) / 2
                     
@@ -536,7 +537,6 @@ def mainGame():
         for powerup in powerups_on_screen:
             if powerup['type'] == 'powerup3' and game_mode == 'enemy':
                 # Add glowing effect around powerup3 in enemy mode only
-                import math
                 current_time = pygame.time.get_ticks()
                 
                 # Create pulsing glow effect
@@ -769,7 +769,6 @@ def mainGame():
                 Screen.blit(glow_surface, (playerx - glow_size, playery - glow_size))
                 
                 # Add sparkle effects around the bird
-                import math
                 time = pygame.time.get_ticks() / 100
                 for i in range(4):
                     angle = (time + i * 90) * math.pi / 180
@@ -823,7 +822,6 @@ def mainGame():
                     Screen.blit(glow_surface, (playerx - layer_size, playery - layer_size))
                 
                 # Add golden particles around the bird
-                import math
                 time = pygame.time.get_ticks() / 50
                 for i in range(8):
                     angle = (time + i * 45) * math.pi / 180
@@ -1138,7 +1136,7 @@ def getRandomPipe():
     
     # No bonus spacing effects needed - pipes return to normal after powerup2 ends
     
-    # Decrease powerup counter when creating a new pipe (for powerup1 and powerup2 only)
+    # Add visual effects when creating pipes with active powerups (but don't decrease counter here)
     if active_powerup in ['powerup1', 'powerup2'] and powerup_pipes_remaining > 0:
         # Add visual effect for powerup1 (height increase effect)
         if active_powerup == 'powerup1':
@@ -1162,11 +1160,8 @@ def getRandomPipe():
                 'pipe_x': pipeX
             })
         
-        powerup_pipes_remaining -= 1
-        print(f"Powerup {active_powerup}: {powerup_pipes_remaining} pipes remaining")
-        if powerup_pipes_remaining <= 0:
-            active_powerup = None
-            print(f"Powerup effect ended! Pipes return to normal spacing.")
+        # Note: Powerup counter will be decreased when passing through pipes (in scoring logic)
+        print(f"Created pipe with {active_powerup} active: {powerup_pipes_remaining} pipes remaining")
 
     # Powerups are activated immediately upon collection
     
